@@ -1,0 +1,1870 @@
+% \documentclass[a4paper,10pt]{article} % or whatever
+% \documentclass[letterpaper,10pt]{article} % or whatever
+\documentclass{article}
+
+% if you need to pass options to natbib, use, e.g.:
+     \PassOptionsToPackage{numbers, compress}{natbib}
+% before loading neurips_2020
+
+% ready for submission
+% \usepackage{neurips_2021}
+
+% to compile a preprint version, e.g., for submission to arXiv, add add the
+% [preprint] option:
+% \usepackage[final]{neurips_2021}
+
+% to compile a camera-ready version, add the [final] option, e.g.:
+
+% \usepackage[final]{neurips_2020}
+\usepackage[preprint]{neurips_2021}
+% \usepackage[preprint]{neurips_2021}
+
+
+% to compile a camera-ready version, add the [final] option, e.g.:
+
+
+% \newtheorem*{notice}{Notice}
+
+% \theoremstyle{definition}
+% \newtheorem{dfn}[equation]{Definition}
+% \newtheorem{bigrem}[equation]{Remark}
+% \newtheorem{num}[equation]{} % a bit strange, but I do use it!
+% \newtheorem{exmp}[equation]{Example}
+
+
+\newcommand{\ignore}[1]{}
+% to avoid loading the natbib package, add option nonatbib:
+\usepackage{dsfont}
+\input{preamble}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows}
+%  \usepackage{subfigure} 
+\pdfminorversion=7
+
+%\floatname{algorithm}{Procedure}
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+\newcommand{\bfs}[1]{\textbf{({#1})}}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage{microtype}      % microtypography
+
+%\tikzstyle{input} = [rectangle, rounded corners, minimum width=1cm, minimum height=1cm,text centered, draw=black]
+%\tikzstyle{process} = [rectangle, minimum width=3cm, minimum height=1cm, text centered, draw=black]
+%\tikzstyle{output} = [rectangle, rounded corners, minimum width=1cm, minimum height=1cm,text centered, draw=black]
+\title{Tail and Concentration Bounds with Applications}
+% \author{%
+%   Qiyu~Kang, and Wee~Peng~Tay
+%  \thanks{First two authors contributed equally to this work.} 
+%   \\
+%   School of Electrical and Electronic Engineering\\
+%   Nanyang Technological University\\
+%   Singapore \\
+% %   \texttt{songy@ntu.edu.sg, kang0080@e.ntu.edu.sg, wptay@ntu.edu.sg, qding001@e.ntu.edu.sg} \\
+%   % examples of more authors
+%   % \And
+%   % Coauthor \\
+%   % Affiliation \\
+%   % Address \\
+%   % \texttt{email} \\
+% }
+\usepackage{titlesec}
+
+\setcounter{secnumdepth}{4}
+
+\titleformat{\paragraph}
+{\normalfont\normalsize\bfseries}{\theparagraph}{1em}{}
+\titlespacing*{\paragraph}
+{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+
+\begin{document}
+
+\maketitle
+
+% \begin{abstract}
+
+% Deep neural networks (DNNs) are well-known to be vulnerable to adversarial attacks, where malicious human-imperceptible perturbations are included in the input to the deep network to fool it into making a wrong classification. Recent studies have demonstrated that neural Ordinary Differential Equations (ODEs) are intrinsically more robust against adversarial attacks compared to vanilla DNNs. In this work, we propose a stable neural ODE with Lyapunov-stable equilibrium points for defending against adversarial attacks (SODEF). By ensuring that the equilibrium points of the ODE solution used as part of SODEF is Lyapunov-stable, the ODE solution for an input with a small perturbation converges to the same solution as the unperturbed input. We provide theoretical results that give insights into the stability of SODEF as well as the choice of regularizers to ensure its stability. Our analysis suggests that our proposed regularizers force the extracted feature points to be within a neighborhood of the Lyapunov-stable equilibrium points of the ODE. SODEF is compatible with many defense methods and can be applied to any neural network's final regressor layer to enhance its stability against adversarial attacks. 
+% \end{abstract}
+\section{Introduction}
+In a variety of settings, it is of interest to obtain bounds on the tails of a random variable, or two-sided inequalities that guarantee that a random variable is close to its mean or median. In this chapter, we explore a number of elementary techniques for obtaining both deviation and concentration inequalities. The main text is from \cite{wainwright2019high,mcdiarmid1989method} which get the concentration using \tb{bounded difference} and \tb{sub-Gaussian (sub-exponential)} property. The best way to understand the bounds is to apply them, so I show some applications especially for graphs.
+\section{Bounds for A Single or Independent Variables}
+Gaining control of higher-order moments leads to correspondingly sharper bounds on tail probabilities, ranging from Markov’s inequality (which requires only existence of the first moment) to the Chernoff bound (which requires existence of the moment generating function). We introduce 
+\begin{enumerate}
+\item Markov inequality, Chebyshev's inequality and Chernoff in \cref{ssec:markov_chernoff}.
+\item Sub-Gaussian variables in  \cref{ssec:subgaussian}.
+\item Sub-exponential variables in  \cref{ssec:sub_exp}.
+\item One side tail for variables bounded from one side in   \cref{ssec:oneside}.
+\end{enumerate}
+
+\subsection{Markov, Chebyshev and Chernoff}\label{ssec:markov_chernoff}
+\begin{thma}{\bfs{Markov Inequality}}
+Given a \tb{non-negative} random variable $X$ with \tb{finite mean}, we have
+$$
+\mathbb{P}[X \geq t] \leq \frac{\mathbb{E}[X]}{t} \quad \text { for all } t>0 .
+$$
+\end{thma}
+\begin{thma}{\bfs{Chebyshev Inequality}}
+Given random variable $X$ that also has a \tb{finite variance}, we have:
+$$
+\mathbb{P}[|X-\mu| \geq t] \leq \frac{\operatorname{var}(X)}{t^{2}} \quad \text { for all } t>0
+$$
+\end{thma}
+\begin{rema}{\bfs{sharpness (exact) and relations}}
+Observe that Chebyshev's inequality follows by applying Markov's inequality to the non-negative random variable $Y=(X-\mu)^{2}.$ Both Markov's and Chebyshev's inequalities are sharp, meaning that they cannot be improved in general.
+\end{rema}
+\begin{rema}{\bfs{higher order inequality}}
+There are various extensions of Markov's inequality applicable to random variables with higher-order moments. For instance, whenever $X$ has a central moment of order $k$, an application of Markov's inequality to the random variable $|X-\mu|^{k}$ yields that
+\begin{align}
+\mathbb{P}[|X-\mu| \geq t] \leq \frac{\mathbb{E}\left[|X-\mu|^{k}\right]}{t^{k}}\label{basic:eq1}
+\end{align}
+for all $t>0$
+\end{rema}
+\begin{rema}{\bfs{General Concentration}}
+We say a sequence $X$ with is concentrated in width $s$ if there exist $u$ so that
+\begin{align}
+    \P(u \leq X \leq u+s) \to 1\label{eq:111}
+\end{align}
+We have that by Chebyschev's inequality any random variable $X$ is 
+concentrated in width $\sqrt{\operatorname{Var}(X)} \omega(1) .$ $\omega(1)$ denotes a function of $n$ approaching infinity arbitrarily slowly.
+
+We next consider \gls{iid} variables $X_1,\ldots,X_n$. Let $\bar{X} = \frac{1}{n}\sum_{i=1}^{n}X_i$, which has variance $O(\frac{1}{n})$. We have $\bar{X}$ is concentrated in width $O(\frac{1}{\sqrt{n}})\omega(1)$.
+
+From more advanced inequality \cref{corhoeffbound}, given $0\le X_i\le 1$, we have
+$$
+\mathbb{P}\left[\sum_{i=1}^{n}\left(X_{i}-\mu_{i}\right) \geq t\right] \leq e^{-\frac{2 t^{2}}{n}}
+$$
+We therefore can also get the same conclusion: $\bar{X}$ is concentrated in width $O(\frac{1}{\sqrt{n}})\omega(1)$. 
+
+One question is why we get the same conclusion even we use a stronger inequality. This is because the weak Chebyschev's inequality is enough to give us the conclusion, and  \cref{corhoeffbound} only give us more information of the speed of concentration convergence (how fast is the convergence in \cref{eq:111}).
+
+
+From Section 9.1 in Tay's Information Notes, assume $0$ mean (and there it assumes Gaussian), we know if $\frac{1}{n}\norm{X^n}_2^2 =\frac{1}{n}\sum X_i^2\xrightarrow{p} \operatorname{Var}(X_1) $, where $X^n=(X_1,\ldots,X_n)$. We therefore get the vector $X^n$ is concentrated in a sphere with radius $O(\sqrt{n})\omega(1)$.
+
+One question is what's the relation between this vector concentration and the empirical mean concentration? Note since $n$ is increasing, the equivalence of the finite dimension norm can be used.
+
+Answer: No relation. They are two different concentrations. And if we first restrict vector $X^n$ to be in the sphere with radius $O(\sqrt{n})\omega(1)$, the empirical mean $\bar{X}$ is still concentrated in width $O(\frac{1}{\sqrt{n}})\omega(1)$ (Intersection of two sets with probability converging to $1$). 
+\end{rema}
+
+
+
+\begin{thma}{\bfs{Chernoff Bound Inequality}}\label{basic:thm3}
+Suppose that the random variable $X$ has a  (central) moment generating function in a neighborhood of zero, i.e. $b>0$ such that the function $\varphi(\lambda)=\mathbb{E}\left[e^{\lambda(X-\mu)}\right]$ exists for all $\lambda \leq|b|$. For any $\lambda \in[0, b]$, we get
+$$
+\mathbb{P}[(X-\mu) \geq t]=\mathbb{P}\left[e^{\lambda(X-\mu)} \geq e^{\lambda t}\right] \leq \frac{\mathbb{E}\left[e^{\lambda(X-\mu)}\right]}{e^{\lambda t}}
+$$
+Optimizing our choice of $\lambda$ so as to obtain the tightest result yields the Chernoff bound:
+\begin{align}
+\log \mathbb{P}[(X-\mu) \geq t] \leq -\sup_{\lambda \in[0, b]}\left\{\lambda t - \log \mathbb{E}\left[e^{\lambda(X-\mu)}\right]\right\}\label{basic:eq2}
+\end{align}
+\end{thma}
+
+\begin{cora}{\bfs{Chernoff vs. Moment}}\label{basic:cor1}
+Suppose that the moment generating function of $X$ exists in an interval around zero and $X\geq 0$. Given some $\delta>0$ and integer $k=1,2, \ldots$, we have
+$$
+\inf _{k=0,1,2, \ldots} \frac{\mathbb{E}\left[X^{k}\right]}{t^{k}} \leq \inf _{\lambda>0} \frac{\mathbb{E}\left[e^{\lambda X}\right]}{e^{\lambda t}}
+$$
+\end{cora}
+\begin{proof}
+We have
+$$
+\frac{\mathbf{E}\left[e^{\lambda X}\right]}{e^{\lambda t}}=\frac{\sum_{n} \frac{\lambda^{n} \mathbf{E}\left[X^{n}\right]}{n !}}{\sum_{n} \frac{\lambda^{n}t^{n}}{n !}}=\lim _{n \rightarrow \infty} \frac{1+\lambda \mathbf{E}[X]+\ldots+\frac{\lambda^{n} \mathbf{E}\left[X^{n}\right]}{n !}}{1+\lambda t+\ldots+\frac{\lambda^{n} n^{n}}{n !}}
+$$
+Cauchy's third inequality \cite[Exercise 5.1.]{steele2004cauchy} states that for every nonnegative numbers $a_{1}, \ldots, a_{n}, b_{1}, \ldots, b_{n}$ one has
+$$
+\frac{a_{1}+\ldots+a_{n}}{b_{1}+\ldots+b_{n}} \geqslant \min _{k \leqslant n} \frac{a_{k}}{b_{k}}
+$$
+Therefore,
+$$
+\frac{1+\lambda \mathbf{E}[X]+\ldots+\frac{\lambda^{n} \mathbf{E}\left[X^{n}\right]}{n !}}{1+\lambda t+\ldots+\frac{\lambda^{n} n^{n}}{n !}} \geq \min _{k \leq n} \frac{\lambda^{k} \mathbf{E}\left[X^{k}\right] k !}{k ! \lambda^{k} t^{k}}=\min _{k \leq n} \frac{\mathbf{E}\left[X^{k}\right]}{t^{k}}
+$$
+And finally, taking the limit we have, for every $\lambda>0$ :
+$$
+\frac{\mathbf{E}\left[e^{\lambda X}\right]}{e^{\lambda t}} \geq \inf _{n \in \mathbb{N}} \frac{\mathbf{E}\left[X^{n}\right]}{n !}
+$$
+\end{proof}
+\begin{rema}{\bfs{which inequality to use}}
+The Chernoff bound is most widely used in practice. Below are two reasons:
+\begin{enumerate}
+    \item Manipulating moment generating functions is easy . The LHS of \cref{basic:eq2} is so called (negative) Fenchel-Legendre Transform $I(t)$. Of course we can relax the value $\lambda$ to $\sup_{\lambda \in[0, \infty)}$ or  $\sup_{\lambda \in\Real}$. See Information Theory, Statistics and Inequality note for details.
+    \item In \cite{wainwright2019high} it claims ``The moment bound \cref{basic:eq1} with an optimal choice of $k$ is never worse than the bound \cref{basic:eq2} based on the moment generating function.'' However, this claim is not that correct. We expect Chernoff Bound Inequality will get a better bound than Markov inequality (first order moment), Chebyshev inequality (second order moment) and roughly any inequality with higher order moment. We can observe from \cref{basic:cor1} that the infimum over $k\in N$ maybe not achieved over a finite $k$. Note in \cref{basic:cor1} we only consider $X\ge0$, but even with such a strong restriction we still cannot get the ``never worse" conclusion.
+\end{enumerate}
+\end{rema}
+\begin{rema}{\bfs{moment generating function vs. central moment generating function}}
+In this note we only use central moment generating function $\varphi(\lambda)=\mathbb{E}\left[e^{\lambda(X-\mu)}\right]$. The moment generating function often indicate the $M(\lambda) = \mathbb{E}\left[e^{\lambda(X)}\right]$. See Information Theory, Statistics and Inequality note.
+\end{rema}
+
+\subsection{Sub-Gaussian Variables and Hoeffding Bounds}\label{ssec:subgaussian}
+\subsubsection{Definitions, Examples and  Bounds}\label{ssec:def_sing}
+\begin{defa}{\bfs{Sub-Gaussian with Parameter $\sigma$}}\label{def_subg} A random variable $X$ with mean $\mu=\mathbb{E}[X]$ is sub-Gaussian if there is a positive number $\sigma$ such that
+$$
+\mathbb{E}\left[e^{\lambda(X-\mu)}\right] \leq e^{\sigma^{2} \lambda^{2} / 2} \quad \text { for all } \lambda \in \mathbb{R}
+$$
+\end{defa}
+\begin{thma}{\bfs{Chernoff Bounds for Sub-Gaussian }}\label{thmchernoffgau}
+If $X$ is sub-Gaussian with parameter $\sigma$, we have
+\begin{align}
+\mathbb{P}[|X-\mu| \geq t] \leq 2 e^{-\frac{t^{2}}{2 \sigma^{2}}} \quad \text { for all } t \in \mathbb{R}.\label{basic:eqsubcon}
+\end{align}
+\end{thma}
+\begin{proof}
+We first have 
+$$
+\sup _{\lambda \in R}\left\{\lambda t-\log \mathbb{E}\left[e^{\lambda(X-\mu)}\right]\right\}=\sup _{\lambda \in \mathbb{R}}\left\{\lambda t-\frac{\lambda^{2} \sigma^{2}}{2}\right\}=\frac{t^{2}}{2 \sigma^{2}},
+$$ so we get 
+$$
+\mathbb{P}[X \geq \mu+t] \leq e^{-\frac{t^{2}}{2 \sigma^{2}}} \quad \text { for all } t \geq 0
+$$
+Moreover, by the symmetry of the definition, the variable $-X$ is sub-Gaussian if and only if $X$ is sub-Gaussian, so that we also have the lower deviation inequality $\mathbb{P}[X \leq \mu-t] \leq e^{-\frac{t^{2}}{2 \sigma^{2}}}$, valid for all $t \geq 0 .$ Combining the pieces, we conclude that any sub-Gaussian variable satisfies the concentration inequality \cref{basic:eqsubcon}
+\end{proof}
+
+We next introduce three important sub-Gaussian examples
+
+\begin{exma}{\bfs{Gaussian}}
+Let $X \sim \mathcal{N}\left(\mu, \sigma^{2}\right)$ be a Gaussian random variable with mean $\mu$ and variance $\sigma^{2} .$ By a straightforward calculation, we find that $X$ has the moment generating function
+$$
+\mathbb{E}\left[e^{\lambda (X-\mu)}\right]=\int_{-\infty}^\infty e^{\lambda (x-\mu)} \frac{1}{\sqrt{2\sigma^2 \pi}} e^{-\frac{(x-\mu)^2}{2 \sigma^2}}dx = e^{\frac{\lambda^2\sigma^2}{2}} \int_{-\infty}^\infty \frac{1}{\sqrt{2\sigma^2 \pi}} e^{-\frac{(x-\mu')^2}{2 \sigma^2}} dx = e^{\frac{\lambda^2\sigma^2}{2}},
+$$
+where $\mu' = \sigma^2\lambda+\mu$
+\end{exma}
+\begin{exma}{\bfs{Rademacher variables}}
+A Rademacher random variable $\varepsilon$ takes the values $\{-1,+1\}$ equiprobably. We claim that it is sub-Gaussian with parameter $\sigma=1$. By taking expectations and using the power series expansion for the exponential, we obtain
+$$
+\begin{aligned}
+\mathbb{E}\left[e^{\lambda \varepsilon}\right] &=\frac{1}{2}\left\{e^{-\lambda}+e^{\lambda}\right\} \\
+&=\frac{1}{2}\left\{\sum_{k=0}^{\infty} \frac{(-\lambda)^{k}}{k !}+\sum_{k=0}^{\infty} \frac{(\lambda)^{k}}{k !}\right\} \\
+&=\sum_{k=0}^{\infty} \frac{\lambda^{2 k}}{(2 k) !} \\
+& \leq 1+\sum_{k=1}^{\infty} \frac{\lambda^{2 k}}{2^{k} k !} \\
+&=e^{\lambda^{2} / 2}
+\end{aligned}
+$$
+which shows that $\varepsilon$ is sub-Gaussian with parameter $\sigma=1$ as claimed.
+\end{exma}
+\begin{exma}{\bfs{bounded random variables}}
+ Let $X$ be zero-mean, and supported on some interval $[a, b] .$ Letting $X^{\prime}$ be an independent copy, for any $\lambda \in \mathbb{R}$, we have
+$$
+\begin{aligned}
+\mathbb{E}_{X}\left[e^{\lambda X}\right] &=\mathbb{E}_{X}\left[e^{\lambda\left(X-E_{X^{\prime}}\left[X^{\prime}\right]\right)}\right] \\
+& \leq \mathbb{E}_{X,X'}\left[e^{\lambda\left(X-X^{\prime}\right)}\right]
+\end{aligned}
+$$
+where the inequality follows the convexity of the exponential, and Jensen's inequality. Letting $\varepsilon$ be an independent Rademacher variable, note that the distribution of $\left(X-X^{\prime}\right)$ is the same as that of $\varepsilon\left(X-X^{\prime}\right)$, so that we have
+$$
+\mathbb{E}_{X,X'}\left[e^{\lambda\left(X-X^{\prime}\right)}\right]=\mathbb{E}_{X,X'}\left[\mathbb{E}_{\varepsilon}\left[e^{\lambda \varepsilon\left(X-X^{\prime}\right)}\right]\right] \stackrel{(i)} \leq \mathbb{E}_{X,X'}\left[e^{\frac{\lambda^{2}\left(X-X^{\prime}\right)^{2}}{2}}\right]
+$$
+where step (i) follows from the result of Example $2.2$, applied conditionally with $\left(X,X'\right)$ held fixed. Since $\left|X-X^{\prime}\right| \leq b-a$, we are guaranteed that
+$$
+\mathbb{E}_{X,X'}\left[e^{\frac{\lambda^{2}\left(X-X^{\prime}\right)^{2}}{2}}\right] \leq e^{\frac{\lambda^{2}(b-a)^{2}}{2}}
+$$
+We have shown that $X$ is sub-Gaussian with parameter $\sigma=b-a$. 
+\end{exma}
+\begin{rema}{\bfs{bounded random variables sharpened with  $\sigma=\frac{b-a}{2}$: proof technique I}}\label{remaba}
+
+\tb{Step 1.} Get bound on variance of bounded random variables: For any random variable $Y$ such that $a \leq Y \leq b$ with probability 1, $\operatorname{Var}(Y) \leq \frac{(b-a)^{2}}{4}$. This is because
+$$
+\begin{aligned}
+\operatorname{Var}(Y) &=\inf _{t} \mathbb{E}\left[(Y-t)^{2}\right] \\
+& \leq \mathbb{E}\left[\left(Y-\frac{b+a}{2}\right)^{2}\right] \\
+& \leq \max \left[\left(b-\frac{b+a}{2}\right)^{2},\left(b-\frac{b+a}{2}\right)^{2}\right] \\
+&=\frac{(b-a)^{2}}{4} .
+\end{aligned}
+$$
+\tb{Step 2.} Change of measure: Let $P$ denote the probability distribution of $X$. Define $\varphi(\lambda)=\log \mathbb{E}_{p}\left[e^{\lambda X}\right]$. Let $Q_{\lambda}$ be the distribution of $X$ defined by
+$$
+d Q_{\lambda}(x)=\frac{e^{\lambda x}}{\mathbb{E}_{P}\left[e^{\lambda X}\right]} d P(x)
+$$
+With this change of measure, $\varphi^{\prime}(\lambda)$ and $\varphi^{\prime \prime}(\lambda)$ have simple expressions. More specifically:
+$$
+\varphi^{\prime}(\lambda)=\frac{\mathbb{E}_{P}\left[X e^{\lambda X}\right]}{\mathbb{E}_{P}\left[e^{\lambda X}\right]}=\int x \frac{e^{\lambda x}}{\mathbb{E}_{P}\left[e^{\lambda X}\right]} d P(x)=\mathbb{E}_{Q_{\lambda}}[X],
+$$
+and
+$$
+\begin{aligned}
+\varphi^{\prime \prime}(\lambda) &=\frac{\mathbb{E}_{P}\left[X^{2} e^{\lambda X}\right]}{\mathbb{E}_{P}\left[e^{\lambda X}\right]}-\frac{\left(\mathbb{E}_{P}\left[X e^{\lambda X}\right]\right)^{2}}{\left(\mathbb{E}_{P}\left[e^{\lambda X}\right]\right)^{2}} \\
+&=\mathbb{E}_{Q_{\lambda}}\left[X^{2}\right]-\mathbb{E}_{Q_{\lambda}}[X]^{2}=\operatorname{Var}_{Q_{\lambda}}(X) .
+\end{aligned}
+$$
+\tb{Step 3.} Complete the proof with Taylor's theorem: From step 1, $\varphi^{\prime \prime}(\lambda)=\operatorname{Var}_{Q_{\lambda}}(X) \leq \frac{(b-a)^{2}}{4}$. Fix $\lambda \geq 0 .$ By Taylor's theorem, there is some $\tilde{\lambda} \in[0, \lambda]$
+such that
+$$
+\varphi(\lambda)=\varphi(0)+\varphi^{\prime}(0) \lambda+\frac{1}{2} \varphi^{\prime \prime}(\tilde{\lambda}) \lambda^{2}
+$$
+Since $\varphi(0)=\varphi^{\prime}(0)=0$, the above implies that
+$$
+\varphi(\lambda) \leq \frac{1}{2} \frac{(b-a)^{2}}{4} \lambda^{2}=\frac{\lambda^{2}(b-a)^{2}}{8}
+$$
+We therefore get $\sigma=\frac{b-a}{2}$ for bounded random variable in $[a, b]$
+\end{rema}
+\begin{rema}{\bfs{bounded random variables sharpened with  $\sigma=\frac{b-a}{2}$: proof technique II}}\label{remaba2}
+
+WLOG, we assume $\E X = 0$ since otherwise we can translate it to a central variable  with mean $0$. From Jensen's inequality, we have 
+$$
+e^{h x} \leq \frac{x-a}{b-a} e^{h b}+\frac{b-x}{b-a} e^{h a} \quad \text { for } a \leq x \leq b
+$$
+and so
+\begin{align}
+    E \left[ e ^{ h X }\right] \leq \frac{ b }{ b - a } e ^{ ha }-\frac{ a }{ b - a } e ^{ hb } = e ^{ f ( \hat{h} )}
+\end{align}
+where $\hat{ h }= h ( b - a )$, and $f ( x )=- px +\log \left[1- p + pe ^{ x }\right]$ with $p=\frac{a}{a-b}$.
+
+We have
+$$
+f^{\prime}(x)=-p+\frac{p}{p+(1-p) e^{-x}}
+$$
+and
+$$
+f ^{\prime \prime}( x )=\frac{ p (1- p ) e ^{- x }}{\left[ p +(1- p ) e ^{- x }\right]^{2}} \leq \frac{1}{4}
+$$
+Also $f (0)= f ^{\prime}(0)=0$, so similar to \cref{remaba} step 3, from Taylor’s expansion theorem, we have
+\begin{align*}
+f(\hat{ h }) \leq \frac{1}{8} \hat{ h }^{2}=\frac{1}{8} h ^{2}( b - a )^{2} .
+\end{align*}
+\end{rema}
+\subsubsection{Sum of Independent Sub-Gaussian Variables}
+\begin{thma}{\bfs{Hoeffding Bound for  Sub-Gaussian}}\label{thmhoegaussian}
+Suppose that the variables $X_{i}, i=1, \ldots, n$ are independent, and $Z_{i}$ has mean $\mu_{i}$ and sub-Gaussian parameter $\sigma_{i}$. Then for all $t \geq 0$, we have
+$$
+\mathbb{P}\left[\sum_{i=1}^{n}\left(X_{i}-\mu_{i}\right) \geq t\right] \leq \exp \left\{-\frac{t^{2}}{2 \sum_{i=1}^{n} \sigma_{i}^{2}}\right\}
+$$
+\end{thma} 
+\begin{proof}
+Directly from the fact that $\E \left[e^{\lambda\sum_{i=1}^{n}\left(X_{i}-\mu_{i}\right)}\right]\le e^{\sum \sigma_i^2\lambda^2/2}$, i.e. the summation is sub-Gaussian with parameter $\sigma_*^2 = \sum \sigma^2_i$.
+\end{proof}
+\begin{cora}{\bfs{Hoeffding Bound for Bounded Random Variable}}\label{corhoeffbound}
+If $X_{i} \in[a_i, b_i]$ for all $i=1,2, \ldots, n$, then  it is sub-Gaussian with parameter  $\sigma_i=\frac{b_i-a_i}{2}$, so that we obtain the bound
+$$
+\mathbb{P}\left[\sum_{i=1}^{n}\left(X_{i}-\mu_{i}\right) \geq t\right] \leq e^{-\frac{2 t^{2}}{\sum_{i}^n(b_i-a_i)^{2}}}
+$$
+If $X_{i}$ are \gls{iid}, i.e. $a=a_1=\ldots=a_n$ and $b=b_1=\ldots=b_n$, we then have
+$$
+\mathbb{P}\left[\sum_{i=1}^{n}\left(X_{i}-\mu_{i}\right) \geq t\right] \leq e^{-\frac{2 t^{2}}{n(b-a)^{2}}}
+$$
+\end{cora}
+\subsubsection{Equivalent Definitions of Sub-Gaussian Variables}\label{ssec:def_equ_gau}
+
+\begin{thma}{\bfs{Sub-Gaussian Equivalence}}\label{thmdef_equ_gau}
+ Given any zero-mean random variable $X$, the following properties are equivalent:
+ \begin{enumerate}[(I)]
+     \item There is a constant $\sigma$ such that $\mathbb{E}\left[e^{\lambda X}\right] \leq e^{\frac{\lambda^{2} \sigma^{2}}{2}}$ for all $\lambda \in \mathbb{R}$.
+     \item There is a constant $c \geq 1$ and Gaussian random variable $Z \sim \mathcal{N}\left(0, \tau^{2}\right)$ such that
+$$
+\mathbb{P}[|X| \geq s] \leq c \mathbb{P}[|Z| \geq s] \quad \text { for all } s \geq 0
+$$
+\item  There exists a number $\theta \geq 0$ such that
+$$
+\mathbb{E}\left[X^{2 k}\right] \leq \frac{(2 k) !}{2^{k} k !} \theta^{2 k} \quad \text { for all } k=1,2, \ldots
+$$
+\item  We have
+$$
+\mathbb{E}\left[e^{\frac{\lambda X^{2}}{2 \sigma^{2}}}\right] \leq \frac{1}{\sqrt{1-\lambda}} \quad \text { for all } \lambda \in[0,1) \text { . }
+$$
+ \end{enumerate}
+\end{thma}
+\begin{rema}{\bfs{explanation of the above equivalent definitions}}\label{remthmdef_equ_gau}
+\begin{enumerate}[(I)]
+    \item This is most direct way to establish sub-Gaussianity by computing or bounding the moment generating function, as we have done in \cref{def_subg} 
+    \item The second intuition is that any sub-Gaussian variable is dominated in a certain sense by a Gaussian variable.
+    \item This means having suitably tight control on \tb{all} the moments of the random variable. 
+    \item No intuitive explanation.
+\end{enumerate}
+\end{rema}
+\begin{proof}
+We establish the equivalence by proving the circle of implications (I) $\Rightarrow(\mathrm{II}) \Rightarrow(\mathrm{III}) \Rightarrow(\mathrm{I})$, followed by the equivalence $(\mathrm{I}) \Longleftrightarrow(\mathrm{IV})$.
+
+\tb{Implication (I) $\Rightarrow$ (II):} If $X$ is zero-mean and sub-Gaussian with parameter $\sigma$, then we claim that for $Z \sim \mathcal{N}\left(0,2 \sigma^{2}\right)$,
+$$
+\frac{\mathbb{P}[X \geq t]}{\mathbb{P}[Z \geq t]} \leq \sqrt{8} e \quad \text { for all } t \geq 0
+$$
+showing that $X$ is majorized by $Z$ with constant $c=\sqrt{8} e$. On one hand, by the sub-Gaussianity of $X$, we have $\mathbb{P}[X \geq t] \leq \exp \left(-\frac{t^{2}}{2 \sigma^{2}}\right)$ for all $t \geq 0$. On the other hand, by the Mill's ratio for Gaussian tails, if $Z \sim \mathcal{N}\left(0,2 \sigma^{2}\right)$, then we have
+\begin{align}
+  \mathbb{P}[Z \geq t] \geq\left(\frac{\sqrt{2} \sigma}{t}-\frac{(\sqrt{2} \sigma)^{3}}{t^{3}}\right) e^{-\frac{t^{2}}{4 \sigma^{2}}} \quad \text { for all } t>0  \label{eq:domgau}
+\end{align}
+(See Exercise $2.2$ for a derivation of this inequality. \blue{See asymptotic analysis for the partial integration technique. A reminder: need to write a throughout note}) We split the remainder of our analysis into two cases.
+
+Case 1: First, suppose that $t \in[0,2 \sigma]$. Since the function $\Phi(t)=\mathbb{P}[Z \geq t]$ is decreasing, for all $t$ in this interval,
+$$
+\mathbb{P}[Z \geq t] \geq \mathbb{P}[Z \geq 2 \sigma] \geq\left(\frac{1}{\sqrt{2}}-\frac{1}{2 \sqrt{2}}\right) e^{-1}=\frac{1}{\sqrt{8} e}
+$$
+Since $\mathbb{P}[X \geq t] \leq 1$, we conclude that $\frac{\mathrm{P}[X \geq t]}{\mathrm{P}[Z \geq t]} \leq \sqrt{8} e$ for all $t \in[0,2 \sigma]$.
+
+Case 2: Otherwise, we may assume that $t>2 \sigma .$ In this case, by combining the Mill's ratio $(2.51)$ and the sub-Gaussian tail bound and making the substitution $s=t / \sigma$, we find that
+$$
+\begin{aligned}
+\sup _{t>2 \sigma} \frac{\mathbb{P}[X \geq t]}{\mathbb{P}[Z \geq t]} & \leq \sup _{s>2} \frac{e^{-\frac{s^{2}}{4}}}{\left(\frac{\sqrt{2}}{s}-\frac{(\sqrt{2})^{3}}{s^{3}}\right)} \\
+& \leq \sup _{s>2} s^{3} e^{-\frac{s^{2}}{4}} \\
+& \leq \sqrt{8} e
+\end{aligned}
+$$
+where the last step follows from a numerical calculation.
+
+\tb{Implication (II) $\Rightarrow$ (III):} Suppose that $X$ is majorized by a zero-mean Gaussian with
+variance $\tau^{2}$. Since $X^{2 k}$ is a non-negative random variable, we have
+$$
+\mathbb{E}\left[X^{2 k}\right]=\int_{0}^{\infty} \mathbb{P}\left[X^{2 k}>s\right] d s=\int_{0}^{\infty} \mathbb{P}\left[|X|>s^{1 /(2 k)}\right] d s .
+$$
+Under the majorization assumption, there is some constant $c \geq 1$ such that
+$$
+\int_{0}^{\infty} \mathbb{P}\left[|X|>s^{1 /(2 k)}\right] d s \leq c \int_{0}^{\infty} \mathbb{P}\left[|Z|>s^{1 /(2 k)}\right] d s=c \mathbb{E}\left[Z^{2 k}\right]
+$$
+where $Z \sim \mathcal{N}\left(0, \tau^{2}\right)$. The polynomial moments of this centered Gaussian variable take the form,
+$$
+\mathbb{E}\left[Z^{2 k}\right]=\frac{(2 k) !}{2^{k} k !} \tau^{2 k}, \quad \text { for } k=1,2, \ldots
+$$
+whence
+$$
+\mathbb{E}\left[X^{2 k}\right] \leq c \mathbb{E}\left[Z^{2 k}\right]=c \frac{(2 k) !}{2^{k} k !} \tau^{2 k} \leq \frac{(2 k) !}{2^{k} k !}(c \tau)^{2 k}, \quad \text { for all } k=1,2, \ldots
+$$
+which establishes the moment bound (III) with $\theta=c \tau$.
+
+\tb{Implication (III) $\Rightarrow$ (I):} For each $\lambda \in \mathbb{R}$, we have
+$$
+\mathbb{E}\left[e^{\lambda X}\right] \leq 1+\sum_{k=2}^{\infty} \frac{|\lambda|^{k} \mathbb{E}\left[|X|^{k}\right]}{k !}
+$$
+where we have used the fact $\mathbb{E}[X]=0$ to elminate the term involving $k=1$. If $X$ is symmetric around zero, then all of its odd moments vanish, and by applying our assumption on $\theta(X)$, we obtain
+$$
+\mathbb{E}\left[e^{\lambda X}\right] \leq 1+\sum_{k=1}^{\infty} \frac{\lambda^{2 k}}{(2 k) !} \frac{(2 k) ! \theta^{2 k}}{2^{k} k !}=e^{\frac{\lambda^{2} \theta^{2}}{2}}
+$$
+which shows that $X$ is sub-Gaussian with parameter $\theta$. When $X$ is not symmetric, we can bound the odd moments in terms of the even
+ones as
+\begin{align}
+    \mathbb{E}\left[|\lambda X|^{2 k+1}\right] \leq\left(\mathbb{E}\left[|\lambda X|^{2 k}\right] \mathbb{E}\left[|\lambda X|^{2 k+2}\right]\right)^{1 / 2} \leq \frac{1}{2}\left(\lambda^{2 k} \mathbb{E}\left[X^{2 k}\right]+\lambda^{2 k+2} \mathbb{E}\left[X^{2 k+2}\right]\right)\label{eqsss}
+\end{align}
+where the first inequality follows from the Cauchy-Schwarz inequality; and the second inequality follows from the arithmetic-geometric mean inequality. Applying this bound to the power series expansion\cref{eqsss}, we obtain
+$$\mathbb{E}\left[e^{\lambda X}\right] \leq 1+\left(\frac{1}{2}+\frac{1}{2 \cdot 3 !}\right) \lambda^{2} \mathbb{E}\left[X^{2}\right]+\sum_{k=2}^{\infty}\left(\frac{1}{(2 k) !}+\frac{1}{2}\left[\frac{1}{(2 k-1) !}+\frac{1}{(2 k+1) !}\right]\right) \lambda^{2 k} \mathbb{E}\left[X^{2 k}\right]$$
+$$
+\leq \sum_{k=0}^{\infty} 2^{k} \frac{\lambda^{2 k} \mathbb{E}\left[X^{2 k}\right]}{(2 k) !}
+$$
+$\leq e^{\frac{(\sqrt{2} \lambda \theta)^{2}}{2}}$
+which establishes the claim.
+
+\tb{(I) $\Rightarrow$ (IV):} This result is obvious for $s=0$. For $s \in(0,1)$, we begin with the sub-Gaussian inequality $\mathbb{E}\left[e^{\lambda X}\right] \leq e^{\frac{\lambda^{2} \sigma^{2}}{2}}$, and multiply both sides by $e^{-\frac{\lambda^{2} \sigma^{2}}{2 s}}$, thereby obtaining
+$$
+\mathbb{E}\left[e^{\lambda X-\frac{\lambda^{2} \sigma^{2}}{2 s}}\right] \leq e^{\frac{\lambda^{2} \sigma^{2}(s-1)}{2 s}} .
+$$
+Since this inequality holds for all $\lambda \in \mathbb{R}$, we may integrate both sides over $\lambda \in \mathbb{R}$, using Fubini's theorem to justify exchanging the order of integration.
+
+On the right-hand side, we have
+$$
+\int_{-\infty}^{\infty} \exp \left(\frac{\lambda^{2} \sigma^{2}(s-1)}{2 s}\right) d \lambda=\frac{1}{\sigma} \sqrt{\frac{2 \pi s}{1-s}}
+$$
+On the left-hand side, for each fixed $x \in \mathbb{R}$, we have
+$$
+\int_{-\infty}^{\infty} \exp \left(\lambda x-\frac{\lambda^{2} \sigma^{2}}{2 s}\right) d \lambda=\frac{\sqrt{2 \pi s}}{\sigma} e^{\frac{s x^{2}}{2 \sigma^{2}}}
+$$
+Taking expectations with respect to $X$, we conclude that
+$$
+\mathbb{E}\left[e^{\frac{s X^{2}}{2 \sigma^{2}}}\right] \leq \frac{\sigma}{\sqrt{2 \pi s}} \frac{1}{\sigma} \sqrt{\frac{2 \pi s}{1-s}}=\frac{1}{\sqrt{1-s}}
+$$
+which establishes the claim.
+
+\tb{(IV) $\Rightarrow$ (I):} From the bound $e^{x} \leq x+e^{9 x^{2} / 16}$, we have
+\begin{align}
+\E\left[e^{\lambda X}\right] \leq \mathbb{E}[\lambda X]+\mathbb{E}\left[e^{\frac{9 \lambda^{2} X^{2}}{16}}\right] \stackrel{(i)}{\leq} e^{\frac{9 \lambda^{2} \sigma^{2}}{16}}\label{eq:b}
+\end{align}
+where inequality $(i)$ is valid for $|\lambda| \le \frac{2}{3\sigma}$:
+$$\E\left[e^{\frac{x^{2}}{2\sigma^{2}} \frac{9\lambda^{2}\sigma^{2}}{8}}\right] \leqslant \frac{1}{\sqrt{1-\frac{9\lambda^{2}\sigma^{2}}{8}}}$$
+$$(1-x)^{-\frac{1}{2}}\ge e^{\frac{1}{2}x} \text{ for $x\in [0,\frac{1}{2}]$} \text{ (different from 1.5 in Inequality and Approximate)} $$
+$$\frac{9\lambda^{2}\sigma^{2}}{8}<1$$
+
+It remains to establish a similar upper bound for $|\lambda|>\frac{2}{3 \sigma}$. Noting that for any $c>0$, the functions $f(u)=\frac{u^{2}}{2 c}$ and $f^{*}(v)=\frac{c v^{2}}{2}$ are conjugate duals, the Fenchel-Young inequality implies that
+$$
+u v \leq \frac{u^{2}}{2 c}+\frac{c v^{2}}{2}
+$$
+valid for all $u, v \in \mathbb{R}$ and $c>0$
+Applying this inequality with $u=\lambda$ and $v=X$ yields
+\begin{align}
+\mathbb{E}\left[e^{\lambda X}\right] & \leq \mathbb{E}\left[e^{\frac{\lambda^{2} \sigma^{2}}{2 c}+\frac{c X^{2}}{2 \sigma^{2}}}\right] \nn
+&=e^{\frac{\lambda^{2} \sigma^{2}}{2 c}} \mathbb{E}\left[e^{\frac{c X^{2}}{2 \sigma^{2}}}\right] \nn
+& \le e^{\frac{\lambda^{2} \sigma^{2}}{2 c}} e^{c} \label{eq:a}
+\end{align}
+where the final inequality is valid for $c\in (0,\frac{1}{2}]$. 
+
+Taking $c=1/ 4$, then for all $|\lambda| \geq \frac{2}{3 \sigma}$, we have $\frac{1}{4}\le \frac{9}{16}\lambda^2\sigma^2$,
+so that equation \cref{eq:a} implies that
+$$
+\mathbb{E}\left[e^{\lambda X}\right] \le e^{3 \lambda^{2} \sigma^{2}} \quad \text { for all }|\lambda| \geq \frac{2}{3 \sigma}
+$$
+This inequality, combined with the bound \cref{eq:b}, completes the proof.
+\end{proof}
+\subsection{Sub-exponential Variables and Bernstein Bounds}\label{ssec:sub_exp}
+\subsubsection{Definitions and Bounds}\label{defsub}
+The notion of sub-Gaussianity is fairly restrictive, so that it is natural to consider various relaxations of it. Accordingly, we now turn to the class of sub-exponential variables, which are defined by a slightly milder condition on the moment generating function:
+\begin{defa}{\bfs{Sub-Gaussian with Parameter $(\nu, b)$}}\label{sub-exp}
+A random variable $X$ with mean $\mu=\mathbb{E}[X]$ is sub-exponential if there are non-negative parameters $(\nu, b)$ such that
+$$
+\mathbb{E}\left[e^{\lambda(X-\mu)}\right] \leq e^{\frac{\nu^{2} \lambda^{2}}{2}} \quad \text { for all }|\lambda|<\frac{1}{b}
+$$
+\end{defa}
+\begin{rema}{\bfs{sub-Gaussian vs. sub-exponential}}
+Sub-Gaussian requires a stronger condition . Any sub-Gaussian variable is also sub-exponential with $\nu=\sigma$ and $b=0$, where we interpret $1 / 0$ as being the same as $+\infty$. However, the converse statement is not true, see \cref{expnotgau}.
+
+More comparison is shown in \cref{explaaa,eqexpp}.
+\end{rema}
+
+\begin{exma}{\bfs{one example is sub-exponential but not sub-Gaussian}}\label{expnotgau}
+  Let $Z \sim \mathcal{N}(0,1)$, and consider the random variable $X=Z^{2}$. For $\lambda<\frac{1}{2}$, we have
+$$
+\begin{aligned}
+\mathbb{E}\left[e^{\lambda(X-1)}\right] &=\frac{1}{\sqrt{2 \pi}} \int_{-\infty}^{+\infty} e^{\lambda\left(z^{2}-1\right)} e^{-z^{2} / 2} d z \\
+&=\frac{e^{-\lambda}}{\sqrt{1-2 \lambda}}
+\end{aligned}
+$$
+For $\lambda>1 / 2$, the moment generating function does not exist, showing that $X$ is not sub-Gaussian. Following some calculus, it can be verified that
+$$
+\frac{e^{-\lambda}}{\sqrt{1-2 \lambda}} \leq e^{2 \lambda^{2}}=e^{4 \lambda^{2} / 2}, \quad \text { for all }|\lambda|<1 / 4
+$$
+which shows that $X$ is sub-exponential with parameters $(\nu, b)=(2,4)$.
+\end{exma}
+
+\begin{thma}{\bfs{Chernoff Bounds for Sub-exponential}}\label{thmchernoffexp}
+ Suppose that $X$ is sub-exponential with parameters $(\nu, b)$. Then
+\begin{align}
+   \mathbb{P}[X \geq \mu+t] \leq\left\{\begin{array}{ll}
+e^{-\frac{t^{2}}{2 \nu^{2}}} & \text { if } 0 \leq t \leq \frac{\nu^{2}}{b}, \text { and } \\
+e^{-\frac{t}{2 b}} & \text { for } t>\frac{\nu^{2}}{b}\label{eq:subbb}
+\end{array}\right. 
+\end{align}
+\end{thma}
+\begin{rema}{\bfs{explanation}}\label{explaaa}
+ When $t$ is small enough, these bounds are sub-Gaussian in nature (i.e. with the exponent \tb{quadratic} in $t)$, whereas for larger $t$, the exponential component of the bound scales \tb{linearly} in $t$.
+\end{rema}
+\begin{rema}{\bfs{extension of two-sided}}
+ As with the Hoeffding inequality, similar bounds apply to the left-sided event $X \leq \mu-t$, as well as the two-sided event $|X-\mu| \geq t$, with an additional factor of two in the latter case.
+\end{rema}
+\begin{proof}
+By re-centering as needed, we may assume without loss of generality that $\mu=0$. We have 
+\begin{align*}
+    \mathbb{P}[X \geq t] \leq e^{-\lambda t} \mathbb{E}\left[e^{\lambda X}\right] \leq \exp \underbrace{\left(-\lambda t+\frac{\lambda^{2} \nu^{2}}{2}\right)}_{g(\lambda, t)}, \quad\text{ valid for all } \lambda \in\left[0, b^{-1}\right)
+\end{align*}
+In order to complete the proof, it remains to compute, for each fixed $t \geq 0$, the quantity $g^{*}(t):=\inf _{\lambda \in\left[0, b^{-1}\right)} g(\lambda, t) .$ For each fixed $t>0$, the unconstrained minimum of the function $g(\cdot, t)$ occurs at $\lambda^{*}=t / \nu^{2} .$ If $0 \leq t<\frac{\nu^{2}}{b}$, then this unconstrained optimum corresponds to the constrained minimum as well, so that $g^{*}(t)=-\frac{t^{2}}{2 \nu^{2}}$ over this interval. 
+
+Otherwise, we may assume that $t \geq \frac{\nu^{2}}{b} .$ In this case, since the function $g(\cdot, t)$ is monotonically decreasing in the interval $\left[0, \lambda^{*}\right)$, the constrained minimum is achieved at the boundary point $\lambda^{\dagger}=b^{-1}$, and we have
+$$
+g^{*}(t)=g\left(\lambda^{\dagger}, t\right)=-\frac{t}{b}+\frac{1}{2 b} \frac{\nu^{2}}{b} \stackrel{(i)}{\leq}-\frac{t}{2 b},
+$$
+where inequality (i) uses the fact that $\frac{\nu^{2}}{b} \leq t$
+\end{proof}
+
+\subsubsection{Bernsteins's condition and Bernstein-type Bound}\label{ssec:bern_bound}
+Bernsteins's condition is the \tb{sufficient and (practical) condition} for determining sub-exponential by control on the polynomial moments of $X$ since in many settings, direct calculation of \cref{sub-exp} may be impractical.
+\begin{defa}{\bfs{Bernsteins's Condition}}
+Given a random variable $X$ with mean $\mu=\mathbb{E}[X]$ and variance $\sigma^{2}=\mathbb{E}\left[X^{2}\right]-\mu^{2}$, we say that Bernstein's condition with parameter $b$ holds if
+$$
+\left|\mathbb{E}\left[(X-\mu)^{k}\right]\right| \leq \frac{1}{2} k ! \sigma^{2} b^{k-2} \quad \text { for } k=3,4, \ldots
+$$
+\end{defa}
+
+\begin{thma}{\bfs{Sufficiency of Bernstein Condition}}
+When $X$ satisfies the Bernstein condition, then it is sub-exponential with parameters $(\sqrt{2} \sigma, 2 b)$.
+\end{thma}
+\begin{proof}
+We have
+\begin{align*}
+\mathbb{E}\left[e^{\lambda(X-\mu)}\right] &=1+\frac{\lambda^{2} \sigma^{2}}{2}+\sum_{k=3}^{\infty} \lambda^{k} \frac{\mathbb{E}\left[(X-\mu)^{k}\right]}{k !} \\
+&\stackrel{(i)}{\leq} 1+\frac{\lambda^{2} \sigma^{2}}{2}+\frac{\lambda^{2} \sigma^{2}}{2} \sum_{k=3}^{\infty}(|\lambda| b)^{k-2}
+\end{align*}
+where the inequality (i) makes use of the Bernstein condition. For any $|\lambda|<1 / b$, we can sum the geometric series to obtain
+\begin{align}
+    \mathbb{E}\left[e^{\lambda(X-\mu)}\right] \leq 1+\frac{\lambda^{2} \sigma^{2} / 2}{1-b|\lambda|} \stackrel{(i i)}{\leq} e^{\frac{\lambda^{2} \sigma^{2} / 2}{1-b|\lambda|}}\label{eq:afda}
+\end{align}
+where inequality (ii) follows from the bound $1+t \leq \exp (t)$. Consequently, we conclude that
+$$
+\mathbb{E}\left[e^{\lambda(X-\mu)}\right] \leq e^{\frac{\lambda^{2}(\sqrt{2} \sigma)^{2}}{2}} \quad \text { for all }|\lambda|<\frac{1}{2 b},
+$$
+showing that $X$ is sub-exponential with parameters $(\sqrt{2} \sigma, 2 b)$
+\end{proof}
+\begin{thma}{\bfs{Bernstein-type Bound}}\label{thmBernstein}
+For any random variable satisfying the Bernstein condition, from \cref{eq:afda} we have
+$$
+\mathbb{E}\left[e^{\lambda(X-\mu)}\right] \leq e^{\frac{\lambda^{2} \sigma^{2} / 2}{1-b|\lambda|}} \quad \text { for all }|\lambda|<\frac{1}{b}
+$$
+and moreover, the concentration inequality
+$$
+\mathbb{P}[|X-\mu| \geq t] \leq 2 e^{-\frac{t^{2}}{2\left(\sigma^{2}+b t\right)}} \quad \text { for all } t \geq 0
+$$
+\end{thma}
+\begin{proof}
+The second tail bound follows from Chernoff bound (i.e. Fenchel-Legendre Transform) \cref{basic:eq2} by setting $\lambda=\frac{t}{b t+\sigma^{2}} \in\left[0, \frac{1}{b}\right)$.
+\end{proof}
+\begin{rema}{\bfs{choice of $\lambda$}}\label{choicelambda}
+ I am not sure why choose this $\lambda$ in $\lambda t - \frac{\lambda^{2} \sigma^{2} / 2}{1-b|\lambda|}$. However it seems then $\lambda t = 2\frac{\lambda^{2} \sigma^{2} / 2}{1-b|\lambda|}$ for this choice. One reason is this is a simple form. The optimal $\lambda$ should be $\frac{1}{b}-\sqrt{\frac{\sigma^2}{2b^3t+b^2\sigma^2}}$ (this is a $x+\frac{1}{x}$ type function) and the Fenchel-Legendre Transform will have the value 
+ $$
+I(t)=\sup _{\lambda \in[0,1 / b)}\left(t \lambda-\frac{\sigma^2 \lambda^{2} / 2}{1-b \lambda}\right)=\frac{\sigma^2}{b^{2}} h\left(\frac{b t}{\sigma^2}\right) \geq \frac{t^{2} / 2}{\sigma^2+b t}
+$$
+where $h(u)=1+u-\sqrt{1+2 u}$ for $u>0$ and we used that $h(u) \geq \frac{u^{2}}{2(1+u)}$ for $u>0$. We have
+$$
+\mathbb{P}[X-\mu \geq t] \leq \exp \left(-\frac{\sigma^2}{b^{2}} h\left(\frac{b t}{\sigma^2}\right)\right) \leq \exp \left(-\frac{t^{2} / 2}{\sigma^2+b t}\right) .
+$$
+\end{rema}
+
+\subsubsection{Bernstein vs. Hoeffding (Chernoff)}
+\tb{which one is strong?}
+
+ For variables satisfy Bernstein's condition (including bounded variables), our next result \cref{thmBernstein} will show that the Bernstein condition can be used to obtain tail bounds that can be \tb{tighter} than the Chernoff bound \cref{thmchernoffexp}. This is because Bernstein condition is \tb{stronger} than sub-exponential.
+ 
+ This Bernstein type tail bounds \cref{thmBernstein} shows that for suitably small $t$, the variable $X$ has sub-Gaussian behavior with parameter $\sigma$. For suitably large $t$, \cref{thmBernstein} behaves like the second case in \cref{eq:subbb}.
+ 
+  \begin{exma}{\bfs{bounded variable}}
+       One sufficient condition for Bernstein's condition to hold is that $X$ be bounded; in particular, if $|X-\mu| \leq b$, then it is straightforward to verify that Bernstein condition holds. 
+  \end{exma}
+  
+\begin{rema}{\bfs{bounded parameter $b$ vs. variance $\sigma^2$}}
+ For bounded variable $X$ with $|X-\mu| \leq b$, since $\sigma^2 = \E[(X-\mu)^2] \le b^2$, this bound is never worse; moreover, it is substantially better when $\sigma^2 \ll b^2$, as would be the case for a random variable that occasionally takes on large values, but has relatively small variance. Such variance-based control frequently plays a key role in obtaining optimal rates in statistical problems, as will be seen in later chapters. 
+\end{rema}  
+ 
+ For bounded random variables, Bennett’s inequality can be used to provide sharper control on the tails.\blue{[need update Bennett and compare]}
+
+\subsubsection{Sum of Independent Sub-exponential Variables}
+Like the sub-Gaussian property, the sub-exponential property is preserved under summation for independent random variables, and the parameters transform as a sum in a simple way. 
+\begin{thma}{\bfs{Hoeffding Bound for  Sub-exponential}}\label{thmhoeexp}
+Consider an independent sequence $\left\{X_{k}\right\}_{k=1}^{n}$ of random variables, such that $X_{k}$ has mean $\mu_{k}$, and is sub-exponential with parameters $\left(\nu_{k}, b_{k}\right) .$ we have  the upper tail bound
+$$
+\mathbb{P}\left[\frac{1}{n} \sum_{i=1}^{n}\left(X_{k}-\mu_{k}\right) \geq t\right] \leq\left\{\begin{array}{ll}
+e^{-\frac{n^2t^{2}}{2\nu_{*}^{2}}} & \text { for } 0 \leq t \leq \frac{\nu_{*}^{2}}{n b_{*}} \\
+e^{-\frac{n t}{2 b_{*}}} & \text { for } t>\frac{\nu_{*}^{2}}{n b_{*}},
+\end{array}\right.
+$$
+where
+$$
+b_{*}:=\max _{k=1, \ldots, n} b_{k} \text { and } \nu_{*}:=\sqrt{\sum_{k=1}^{n} \nu_{k}^{2}}
+$$
+Similar bounds apply to the left-sided event $\frac{1}{n} \sum_{i=1}^{n}\left(X_{k}-\mu_{k}\right) \leq -t$, as well as the two-sided event $|\frac{1}{n} \sum_{i=1}^{n}\left(X_{k}-\mu_{k}\right) |\geq t$, with an additional factor of two in the latter case.
+\end{thma}
+\begin{proof}
+ We compute the moment generating function
+$$
+\mathbb{E}\left[e^{\lambda \sum_{k=1}^{n}\left(X_{k}-\mu_{k}\right)}\right] = \prod_{k=1}^{n} \mathbb{E}\left[e^{\lambda\left(X_{k}-\mu_{k}\right)}\right] \leq \prod_{k=1}^{n} e^{\lambda^{2} \nu_{k}^{2} / 2}
+$$
+valid for all $|\lambda|<\left(\max _{k=1, \ldots, n} b_{k}\right)^{-1}$, where the first equality follows from independence, and second inequality follows since $X_{k}$ is sub-exponential with parameters $\left(\nu_{k}, b_{k}\right)$. Thus, we conclude that the variable $\sum_{k=1}^{n}\left(X_{k}-\mu_{k}\right)$ is sub-exponential with the parameters $\left(\nu_{*}, b_{*}\right)$, 
+\end{proof}
+
+
+\subsubsection{Examples}
+The first sub-exponential example is shown in \cref{expnotgau} which is  $Z^2$ for a Gaussian variable $Z$. We next shown that in general the sum of squares of Gaussian variables, namely the  $\chi^2=\sum Z_i^2$, is sub-exponential.
+
+
+\begin{exma}{\bfs{$\chi^{2}$ -variables}}\label{examchi}
+     A chi-squared random variable with $n$ degrees of freedom, denoted by $Y \sim \chi_{n}^{2}$, can be represented as the sum $Y=\sum_{k=1}^{n} Z_{k}^{2}$ where $Z_{k} \sim \mathcal{N}(0,1)$ are i.i.d. variable. In \cref{expnotgau}, we show the variable $Z_{k}^{2}$ is sub-exponential with parameters $(2,4) .$ Consequently, since the variables $\left\{Z_{k}\right\}_{k=1}^{n}$ are independent, the $\chi^{2}$ -variate $Y$ is sub-exponential with parameters $(\nu, b)=(2 \sqrt{n}, 4)$, and \cref{thmhoeexp} yields the two-sided tail bound
+$$
+\mathbb{P}\left[\left|\frac{1}{n} \sum_{k=1}^{n} Z_{k}^{2}-1\right| \geq t\right] \leq 2 e^{-n t^{2} / 8}, \quad \text { for all } t \in(0,1)
+$$
+\end{exma} 
+\begin{rema}{\bfs{possible application of \cref{examchi}}}
+ The concentration of $\chi^{2}$ -variables plays an important role in the analysis of procedures based on taking \tb{random projections}. A classical instance of the random projection method is the Johnson-Lindenstrauss analysis of metric embedding.
+\end{rema}
+\begin{exma}{\bfs{Johnson-Lindenstrauss Embedding}}
+     As one application of the concentration of $\chi^{2}$-variables, consider the following problem:
+     
+     Suppose that we are given $N \geq 2$ distinct vectors $\left\{u^{1}, \ldots, u^{N}\right\}$, with each vector lying in $\mathbb{R}^{d}$. If the data dimension $d$ is large, then it might be expensive to store and manipulate the data set. The idea of dimensionality reduction is to construct a mapping $F: \mathbb{R}^{d} \rightarrow \mathbb{R}^{m}$ -with the projected dimension $m$ substantially smaller than $d$ - that preserves some "essential" features of the data set. What features should we try to preserve? There is not a unique answer to this question but, as one interesting example, we might consider preserving pairwise distances, or equivalently norms
+     and inner products. Many algorithms are based on such pairwise quantities, including linear regression, methods for principal components, the $k$ -means algorithm for clustering, and nearest-neighbor algorithms for density estimation. With these motivations in mind, given some tolerance $\delta \in(0,1)$, we might be interested in a mapping $F$ with the guarantee that
+$$
+(1-\delta) \leq \frac{\left\|F\left(u^{i}\right)-F\left(u^{j}\right)\right\|_{2}^{2}}{\left\|u^{i}-u^{j}\right\|_{2}^{2}} \leq(1+\delta)
+$$
+for all pairs $u^{i} \neq u^{j}$
+In words, the projected data set $\left\{F\left(u^{1}\right), \ldots, F\left(u^{N}\right)\right\}$ preserves all pairwise squared distances up to a multiplicative factor of $\delta$. Of course, this is always possible if the projected dimension $m$ is large enough, but the goal is to do it with relatively small $m .$
+
+Constructing such a mapping that satisfies the condition (2.20) with high probability turns out to be straightforward as long as the projected dimension is lower bounded as $m \succsim \frac{1}{\delta^{2}} \log N$. Observe that the projected dimension is independent of the ambient dimension $d$, and scales only logarithmically with the number of data points $N$.
+
+\tb{Construction $F$:}
+
+The construction is probabilistic: first form a random matrix $\mathbf{X} \in \mathbb{R}^{m \times d}$ filled with independent $\mathcal{N}(0,1)$ entries, and use it to define a linear mapping:
+$$F: \mathbb{R}^{d} \rightarrow \mathbb{R}^{m} \text{ via } u \mapsto \mathbf{X} u / \sqrt{m}$$. We now verify that $F$ satisfies condition $(2.20)$ with high probability. Let $x_{i} \in \mathbb{R}^{d}$ denote the $i$ th row of $\mathbf{X}$, and consider some fixed $u \neq 0$. Since $x_{i}$ is a standard normal vector, the variable $\left\langle x_{i}, u /\|u\|_{2}\right\rangle$ follows a $\mathcal{N}(0,1)$ distribution, and hence the quantity
+$$
+Y:=\frac{\|\mathbf{X} u\|_{2}^{2}}{\|u\|_{2}^{2}}=\sum_{i=1}^{m}\left\langle x_{i}, u /\|u\|_{2}\right\rangle^{2}
+$$
+follows a $\chi^{2}$ distribution with $m$ degrees of freedom, using the independence of the rows. Therefore, applying the tail bound ( $2.19$ ), we find that
+$$
+\mathbb{P}\left[\left|\frac{\|\mathbf{X} u\|_{2}^{2}}{m\|u\|_{2}^{2}}-1\right| \geq \delta\right] \leq 2 e^{-m \delta^{2} / 8} \quad \text { for all } \delta \in(0,1)
+$$
+Rearranging and recalling the definition of $F$ yields the bound
+$$
+\mathbb{P}\left[\frac{\|F(u)\|_{2}^{2}}{\|u\|_{2}^{2}} \notin[(1-\delta),(1+\delta)]\right] \leq 2 e^{-m \delta^{2} / 8}
+$$
+for any fixed $0 \neq u \in \mathbb{R}^{d}$
+Noting that there are $\left(\begin{array}{c}N \\ 2\end{array}\right)$ distinct pairs of data points, we apply the union bound to conclude that
+$$
+\mathbb{P}\left[\frac{\left\|F\left(u^{i}-u^{j}\right)\right\|_{2}^{2}}{\left\|u^{i}-u^{j}\right\|_{2}^{2}} \notin[(1-\delta),(1+\delta)] \text { for some } u^{i} \neq u^{j}\right] \leq 2\left(\begin{array}{l}
+N \\
+2
+\end{array}\right) e^{-m \delta^{2} / 8}
+$$
+For any $\epsilon \in(0,1)$, this probability can be driven below $\epsilon$ by choosing $m>\frac{16}{\delta^{2}} \log (N / \epsilon)$
+\end{exma}
+
+\subsubsection{Equivalent Definitions of Sub-exponential Variables}\label{ssec:def_equ_exp}
+
+\begin{thma}{\bfs{Sub-exponential Equivalence}}
+
+\end{thma}For a zero-mean random variable $X$, the following statements are equivalent:
+\begin{enumerate}[(I)]
+    \item There are non-negative numbers $(\nu, b)$ such that
+$$
+\mathbb{E}\left[e^{\lambda X}\right] \leq e^{\frac{\nu^2\lambda^2}{2}} \quad \text { for all }|\lambda|<\frac{1}{b}
+$$
+\item There is a positive number $c_{0}>0$ such that $\mathbb{E}\left[e^{\lambda X}\right]<\infty$ for all $|\lambda| \leq c_{0}$.
+\item There are constants $c_{1}, c_{2}>0$ such that
+$$
+\mathbb{P}[|X| \geq t] \leq c_{1} e^{-c_{2} t} \quad \text { for all } t>0 .$$
+\item The quantity $\gamma:=\sup _{k \geq 2}\left[\frac{E\left[X^{k}\right]}{k !}\right]^{1 / k}$ is finite.
+\end{enumerate}
+
+\begin{rema}{\bfs{explanation of the above equivalent definitions}}\label{eqexpp} Note the above are equivalent conditions (iff) for sub-exponential. The Bernsteins condition introduce in \cref{ssec:bern_bound} is a stronger sufficient condition. 
+\begin{enumerate}[(I)]
+    \item This is most direct way to establish sub-exponential by computing or bounding the moment generating function, as we have done in \cref{defsub}.
+    \item This is very interesting since it only states finite for the moment generating function around a neighbor of  $0$. This is easy to check but not easy to determine $b$. Compare to Bernsteins condition, it is therefore not useful to get a bound.
+    \item This means the tail of sub-exponential variable is dominated by a bound with the exponential component of the bound scales \tb{linearly} in $t$. From \cref{thmchernoffexp} and \cref{explaaa}, we know this is what happens for large $t$. So sub-exponential is guaranteed essentially by the linear exponent in $t$. In a summary:
+    $$\text{sub-exponential} \Longleftrightarrow \text{linear exponent bound}$$
+    which can be \tb{loosen} to:
+    $$\text{sub-exponential} \Longleftrightarrow \text{linear exponent bound for large $t$, and {quadratic} exponent for small $t$}$$
+  
+    
+    As a comparison, in \cref{thmdef_equ_gau,remthmdef_equ_gau} we states that a sub-Gaussian variable is dominated  by a Gaussian variable, which is further explained in \cref{eq:domgau}, that it is dominated by a bound with the exponent of the bound scales \tb{quadratic} in $t$. Since for large $t$ (small $t$ is shown in \cref{explaaa} with both quadratic exponent for sub-exponential and sub-Gaussian), bound with {quadratic} exponent implies bound with {linearly} exponent, we can see again sub-Gaussian is more strict than sub-exponential. 
+    \blue{[need update from bounded diff paper]}
+    \item This is just a restatement of (III) with $\gamma$ as the convergence radius of the power series.
+\end{enumerate}
+\end{rema}
+\begin{proof}
+\tb{Implication (II) $\Rightarrow$ (I):}
+ The existence of the moment generating function for $|\lambda|<c_{0}$ implies that $\mathbb{E}\left[e^{\lambda X}\right]=1+\frac{\lambda^{2} \mathrm{E}\left[X^{2}\right]}{2}+o\left(\lambda^{2}\right)$ as $\lambda \rightarrow 0 .$ Moreover, an ordinary Taylor series expansion
+implies that $e^{\frac{\sigma^{2} \lambda^{2}}{2}}=1+\frac{\sigma^{2} \lambda^{2}}{2}+o\left(\lambda^{2}\right)$ as $\lambda \rightarrow 0$. Therefore, as long as $\sigma^{2}>\mathbb{E}\left[X^{2}\right]$, there
+exists some $b \geq 0$ such that $\mathbb{E}\left[e^{\lambda X}\right] \leq e^{\frac{\sigma^{2} \lambda^{2}}{2}}$ for all $|\lambda| \leq \frac{1}{b}$
+
+\tb{Implication (I) $\Rightarrow$ (II):} This implication is immediate.
+
+\tb{Implication (III) $\Rightarrow$ (II):} For an exponent $a>0$ and truncation level $T>0$ to be chosen, we have
+$$
+\mathbb{E}\left[e^{a|X|} \indicate{e^{a|X|} \leq e^{a T}}\right] \leq \int_{0}^{e^{a T}} \mathbb{P}\left[e^{a|X|} \geq t\right] d t \leq 1+\int_{1}^{e^{a T}} \mathbb{P}\left[|X| \geq \frac{\log t}{a}\right] d t
+$$
+Applying the assumed tail bound, we obtain
+$$
+\mathbb{E}\left[e^{a|X|} \indicate{e^{a|X|} \leq e^{a T}}\right]  \leq 1+c_{1} \int_{1}^{e^{a T}} e^{-\frac{c_{2} \log t}{a}} d t=1+c_{1} \int_{1}^{e^{a T}} t^{-c_{2} / a} d t
+$$
+Thus, for any $a \in\left[0, \frac{c_{2}}{2}\right]$, we have
+$$
+\mathbb{E}\left[e^{a|X|} \indicate{e^{a|X|} \leq e^{a T}}\right]  \leq 1+\frac{c_{1}}{2}\left(1-e^{-a T}\right) \leq 1+\frac{c_{1}}{2} .
+$$
+By taking the limit as $T \rightarrow \infty$, we conclude that $\mathbb{E}\left[e^{a|X|}\right]$ is finite for all $a \in\left[0, \frac{c_{2}}{2}\right]$. Since both $e^{a X}$ and $e^{-a X}$ are upper bounded by $e^{|a||X|}$, it follows that $\mathbb{E}\left[e^{a X}\right]$ is finite for all $|a| \leq \frac{c_{2}}{2}$.
+
+\tb{Implication (II) $\Rightarrow$ (III):} By the Chernoff bound with $\lambda=c_{0} / 2$, we have
+$$
+\mathbb{P}[X \geq t] \leq \mathbb{E}\left[e^{\frac{c_{0} X}{2}}\right] e^{-\frac{c_{0} t}{2}} .
+$$
+Applying a similar argument to $-X$, we conclude that $\mathbb{P}[|X| \geq t] \leq c_{1} e^{-c_{2} t}$ with $c_{1}=$ $\mathbb{E}\left[e^{c_{0} X / 2}\right]+\mathbb{E}\left[e^{-c_{0} X / 2}\right]$ and $c_{2}=c_{0} / 2$.
+
+\tb{Implication (II)  $\Leftrightarrow$ (IV):} Since the moment generating function exists in an open interval around zero, we can consider the power-series expansion
+$$
+\mathbb{E}\left[e^{\lambda X}\right]=1+\sum_{k=2}^{\infty} \frac{\lambda^{k} \mathbb{E}\left[X^{k}\right]}{k !} \quad \text { for all }|\lambda|<a
+$$
+By definition, the quantity $\gamma(X)$ is the radius of convergence of this power series, from which the equivalence between (II) and (IV) follows.
+\end{proof}
+
+\subsection{Some One-sided Results}\label{ssec:oneside}
+Up to this point, we have focused on two-sided forms of Bernstein's condition, which yields bounds on both the upper and lower tails. As we have seen, one sufficient condition for Bernstein's condition to hold is a bound on the absolute value, say $|X| \leq b$ almost surely. Of course, if such a bound only holds in a \tb{one-sided way}, it is still possible to derive one-sided bounds. In this section, we state and prove one such result.
+
+\begin{thma}{\bfs{One-sided Bernstein's inequality}}
+If $X \leq b$ almost surely, then
+\begin{align}
+   \mathbb{E}\left[e^{\lambda(X-\mathbb{E}[X])}\right] \leq \exp \left(\frac{\frac{\lambda^{2}}{2} \mathbb{E}\left[X^{2}\right]}{1-\frac{b \lambda}{3}}\right) \quad \text { for all } \lambda \in[0,3 / b) \label{eq:onesidea}
+\end{align}
+Consequently, given n independent random variables such that $X_{i} \leq b$ almost surely, we have 
+\begin{align}
+   \mathbb{P}\left[\sum_{i=1}^{n}\left(X_{i}-\mathbb{E}\left[X_{i}\right]\right) \geq n \delta\right] \leq \exp \left(-\frac{n \delta^{2}}{2\left(\frac{1}{n} \sum_{i=1}^{n} \mathbb{E}\left[X_{i}^{2}\right]+\frac{b \delta}{3}\right)}\right) \label{eq:onesideb}
+\end{align}
+
+\end{thma} 
+\begin{rema}{\bfs{lower side and non-negative}}
+Of course, if a random variable is bounded from below, then the same result can be used
+to derive bounds on its lower tail; we simply apply the bound $(2.22 \mathrm{~b})$ to the random variable $-X .$ In the special case of independent non-negative random variables $Y_{i} \geq 0$, we find that
+$$
+\P(\sum_{i=1}^{n}\left(Y_{i}-\mathbb{E}\left[Y_{i}\right]\right) \leq-n \delta) \leq \exp \left(-\frac{n \delta^{2}}{\frac{2}{n} \sum_{i=1}^{n} \mathbb{E}\left[Y_{i}^{2}\right]}\right)
+$$
+Thus, we see that the lower tail of any non-negative random variable satisfies a bound of the sub-Gaussian type, albeit with the second moment instead of the variance.
+\end{rema}
+\begin{proof}
+Defining the function
+$$
+h(u):=2 \frac{e^{u}-u-1}{u^{2}}=2 \sum_{k=2}^{\infty} \frac{u^{k-2}}{k !},
+$$
+we have the expansion
+$$
+\mathbb{E}\left[e^{\lambda X}\right]=1+\lambda \mathbb{E}[X]+\frac{1}{2} \lambda^{2} \mathbb{E}\left[X^{2} h(\lambda X)\right]
+$$
+Observe that for all scalars $x<0, x^{\prime} \in[0, b]$ and $\lambda>0$, we have
+$$
+h(\lambda x) \leq h(0) \leq h\left(\lambda x^{\prime}\right) \leq h(\lambda b) .
+$$
+Consequently, since $X \leq b$ almost surely, we have $\mathbb{E}\left[X^{2} h(\lambda X)\right] \leq \mathbb{E}\left[X^{2}\right] h(\lambda b)$, and hence
+$$
+\begin{aligned}
+\mathbb{E}\left[e^{\lambda(X-\mathbb{E}[X])}\right] & \leq e^{-\lambda \mathbb{E}[X]}\left\{1+\lambda \mathbb{E}[X]+\frac{1}{2} \lambda^{2} \mathbb{E}\left[X^{2}\right] h(\lambda b)\right\} \\
+& \leq \exp \left\{\frac{\lambda^{2} \mathbb{E}\left[X^{2}\right]}{2} h(\lambda b)\right\}
+\end{aligned}
+$$
+Consequently, the bound \cref{eq:onesidea} will follow if we can show that $h(\lambda b) \leq\left(1-\frac{\lambda b}{3}\right)^{-1}$ for $\lambda b<3$. By applying the inequality $k ! \geq 2\left(3^{k-2}\right)$, valid for all $k \geq 2$, we find that
+$$
+h(\lambda b)=2 \sum_{k=2}^{\infty} \frac{(\lambda b)^{k-2}}{k !} \leq \sum_{k=2}^{\infty}\left(\frac{\lambda b}{3}\right)^{k-2}=\frac{1}{1-\frac{\lambda b}{3}},
+$$
+where the condition $\frac{\lambda b}{3} \in[0,1)$ allows us to sum the geometric series. 
+
+In order to prove the upper tail bound \cref{eq:onesideb}, we apply the Chernoff bound \cref{basic:thm3}, exploiting independence to apply the moment generating function bound \cref{eq:onesidea} separately, and thereby find that
+$$
+\mathbb{P}\left[\sum_{i=1}^{n}\left(X_{i}-\mathbb{E}\left[X_{i}\right]\right) \geq n \delta\right] \leq \exp \left(-\lambda n \delta+\frac{\frac{\lambda^{2}}{2} \sum_{i=1}^{n} \mathbb{E}\left[X_{i}^{2}\right]}{1-\frac{b \lambda}{3}}\right)
+$$
+valid for $b \lambda \in[0,3)$
+Substituting
+$$
+\lambda=\frac{n \delta}{\sum_{i=1}^{n} \mathbb{E}\left[X_{i}^{2}\right]+\frac{n \delta b}{3}} \in[0,3 / b)
+$$
+and simplifying yields the bound.
+\end{proof}
+\begin{rema}{\bfs{choice of $\lambda$}}
+See \cref{choicelambda} for the reason. It seems for any $\lambda a - \frac{\lambda^{2} b}{1-c\lambda}$, we can do the trick, let $\lambda a=2\frac{\lambda^{2} b}{1-c\lambda}$, to simplify the formulation instead of directly get the superme of $\lambda a - \frac{\lambda^{2} b}{1-c\lambda}$ (i.e. get the Fenchel-Legendre transform $I(a)$)
+\end{rema}
+
+\section{Bounds from Martingale Difference Sequence}\label{secmar}
+\subsection{Backgroud}
+\begin{defa}{\bfs{Filtration and Adaption}}
+Let $\left\{\mathcal{F}_{k}\right\}_{k=1}^{\infty}$ be a sequence of $\sigma$-fields such that $\mathcal{F}_{k} \subseteq \mathcal{F}_{k+1}$ for all $k \geq 1$; such a sequence is known as a \tb{filtration}. Let $\left\{Y_{k}\right\}_{k=1}^{\infty}$ be a sequence of random variables such that $Y_{k}$ is measurable with respect to the $\sigma$-field $\mathcal{F}_{k}$. In this case, we say that $\left\{Y_{k}\right\}_{k=1}^{\infty}$ is \tb{adapted} to the filtration $\left\{\mathcal{F}_{k}\right\}_{k=1}^{\infty} .$
+\end{defa}
+\begin{rema}
+If $\mathcal{F}_{k}$ is generated from $\sigma(X_1,...,X_k)$ for sequence $\{X\}_{k=1}^{\infty}$, and $\left\{Y_{k}\right\}_{k=1}^{\infty}$ is adapted to the filtration $\left\{\mathcal{F}_{k}\right\}_{k=1}^{\infty}$. We will say In this case, we say that $\left\{Y_{k}\right\}_{k=1}^{\infty}$ is a martingale sequence with respect to $\{X\}_{k=1}^{\infty}$ for simplicity.
+\end{rema}
+\begin{defa}{\bfs{Martingale}}
+Given a sequence $\left\{Y_{k}\right\}_{k=1}^{\infty}$ of random variables adapted to a filtration $\left\{\mathcal{F}_{k}\right\}_{k=1}^{\infty}$, the pair $\left\{\left(Y_{k}, \mathcal{F}_{k}\right)\right\}_{k=1}^{\infty}$ is a martingale if for all $k \geq 1$,
+$$
+\mathbb{E}\left[\left|Y_{k}\right|\right]<\infty, \quad \text { and } \quad \mathbb{E}\left[Y_{k+1} \mid \mathcal{F}_{k}\right]=Y_{k}
+$$
+\end{defa}
+\begin{defa}{\bfs{Martingale Difference Sequence}}
+The adapted sequence $\left\{\left(D_{k}, \mathcal{F}_{k}\right)\right\}_{k=1}^{\infty}$ is called \tb{martingale difference sequence} such that for all $k \geq 1$,
+$$
+\mathbb{E}\left[\left|D_{k}\right|\right]<\infty, \quad \text { and } \quad \mathbb{E}\left[D_{k+1} \mid \mathcal{F}_{k}\right]=0
+$$
+\end{defa}
+\begin{rema}{\bfs{martingale vs. martingale difference sequence}}
+We can either construct a martingale difference sequence from martingale or  construct a martingale from martingale difference sequence. They are equivalent in some sense.
+
+Given a martingale $\left\{\left(Y_{k}, \mathcal{F}_{k}\right)\right\}_{k=0}^{\infty}$, let us define $D_{k}=Y_{k}-Y_{k-1}$ for $k \geq 1$. We then have
+$$
+\begin{aligned}
+\mathbb{E}\left[D_{k+1} \mid \mathcal{F}_{k}\right] &=\mathbb{E}\left[Y_{k+1} \mid \mathcal{F}_{k}\right]-\mathbb{E}\left[Y_{k} \mid \mathcal{F}_{k}\right] \\
+&=\mathbb{E}\left[Y_{k+1} \mid \mathcal{F}_{k}\right]-Y_{k}=0
+\end{aligned}
+$$
+Given a martingale difference sequence $\left\{\left(D_{k}, \mathcal{F}_{k}\right)\right\}_{k=0}^{\infty}$, we can define a martingale as $Y_{k}=Y_{k-1}+D_{k}$ for $k \geq 1$.
+\end{rema}
+
+
+\begin{defa}{\bfs{Doob Martingale}}
+Let $\left\{X_{k}\right\}_{k=1}^{n}$ be a sequence of independent random variables, and consider the random variable $f(X^n)=f\left(X_{1} \ldots, X_{n}\right)$, for some function $f: \mathbb{R}^{n} \rightarrow \mathbb{R}$. \tb{Doob martingale} is defined as $Y_{0}=\mathbb{E}[f(X^n)], Y_{n}=f(X^n)$, and
+$$
+Y_{k}=\mathbb{E}\left[f(X^n) \mid X_{1}, \ldots, X_{k}\right] \quad \text { for } k=1, \ldots, n-1
+$$
+where we assume that all conditional expectations exist.
+\end{defa}
+\begin{rema}{\bfs{explanation of Doob martingale}}
+Note that $Y_{0}$ is a constant, and the random variables $Y_{k}$ will exhibit more fluctuations as we move along the sequence from $Y_{0}$ to $Y_{n}$. Based on the intuition, the martingale approach to tail bounds is based on the telescoping decomposition
+$$
+Y_{n}-Y_{0}=\sum_{k=1}^{n} \underbrace{\left(Y_{k}-Y_{k-1}\right)}_{D_{k}}
+$$
+in which the deviation $f(X^n)-\mathbb{E}[f(X^n)]$ is written as a sum of increments $\left\{D_{k}\right\}_{k=1}^{n} .$:
+$$
+f(X^n)-\mathbb{E}[f(X^n)]=\sum \left\{D_{k}\right\}_{k=1}^{n}
+$$
+\end{rema}
+\subsection{Examples}
+\begin{exma}{\bfs{partial sums as martingales}}
+Let $\left\{X_{k}\right\}_{k=1}^{\infty}$ be a sequence of i.i.d. random variables with mean $\mu$, and define the partial sums $S_{k}\coloneqq \sum_{j=1}^{k} X_{j} .$ Defining $\mathcal{F}_{k}=\sigma\left(X_{1}, \ldots, X_{k}\right)$ and $Y_k=S_k-k\mu$. We then get a martingale $\left\{\left(Y_{k}, \mathcal{F}_{k}\right)\right\}_{k=1}^{\infty}$.
+\end{exma}
+
+\begin{exma}{\bfs{partial sums as martingales}}\label{exma:pasum}
+Let $\left\{X_{k}\right\}_{k=1}^{\infty}$ be a sequence of i.i.d. random variables with mean $\mu$, and define the partial sums $S_{k}\coloneqq \sum_{j=1}^{k} X_{j} .$ Define $\mathcal{F}_{k}=\sigma\left(X_{1}, \ldots, X_{k}\right)$ and $Y_k=S_k-k\mu$. We then get a martingale $\left\{\left(Y_{k}, \mathcal{F}_{k}\right)\right\}_{k=1}^{\infty}$.
+\end{exma}
+
+\begin{exma}{\bfs{quadratic martingale}} We still use the notations defined in \cref{exma:pasum}.
+Suppose now that $\mu=E X_{i}=$ 0 and $\sigma^{2}=\operatorname{var}\left(X_{i}\right)<\infty$. In this case $S_{k}^{2}-k \sigma^{2}$ is a martingale. Since $\left(S_{k}+X_{k+1}\right)^{2}=S_{k}^{2}+2 S_{k} X_{k+1}+X_{k+1}^{2}$ and $X_{k+1}$ is independent of $\mathcal{F}_{k}$,
+we have
+$$
+\begin{aligned}
+\E\left(S_{k+1}^{2}-(k+1) \sigma^{2} \mid \mathcal{F}_{k}\right) &=S_{k}^{2}+2 S_{k} \E\left(X_{k+1} \mid \mathcal{F}_{k}\right)+\E\left(X_{k+1}^{2} \mid \mathcal{F}_{k}\right)-(k+1) \sigma^{2} \\
+&=S_{k}^{2}+0+\sigma^{2}-(k+1) \sigma^{2}=S_{k}^{2}-k \sigma^{2}
+\end{aligned}
+$$
+\end{exma} 
+\begin{exma}{\bfs{exponential martingale}}\label{exmaexpmar}
+Let $X_{1}, X_{2}, \ldots$ be nonnegative i.i.d. random variables with $\E X_{m}=1 .$ If $\mathcal{F}_{k}=\sigma\left(X_{1}, \ldots, X_{k}\right)$ then $Y_{k}\coloneqq\prod_{m \leq k} X_{m}$ defines a martingale. To prove this note that
+$$
+\E\left(Y_{k+1} \mid \mathcal{F}_{k}\right)=Y_{k} \E\left(X_{k+1} \mid \mathcal{F}_{k}\right)=Y_{k}
+$$
+For a concrete example, given  i.i.d. variables $Z_i$, suppose now that $X_{i}=e^{\theta Z_{i}}$ and $\phi(\theta)=\E e^{\theta Z_{i}}<\infty$ . We defined $X_{i}=\exp \left(\theta Z_{i}\right) / \phi(\theta)$
+which has mean $1$. We have 
+$$Y_{k}\coloneqq\prod_{i=1}^{k} X_{i}=\exp \left(\theta \sum_{j=1}^k Z_{j}\right) / \phi(\theta)^{k} \quad \text{ is a martingale.}$$
+\end{exma} 
+\begin{rema}
+The transform in \cref{exmaexpmar} can be used in exponential tilting measure changing.
+\end{rema}
+\begin{exma}{\bfs{likelihood ratio}}
+Let $f$ and $g$ be two mutually continuous densities, and let $\left\{X_{k}\right\}_{k=1}^{\infty}$ be a sequence of random variables drawn i.i.d. according to $f .$ If we let $Y_{n}:=\prod_{k=1}^{n} g\left(X_{k}\right) / f\left(X_{k}\right)$ be the likelihood ratio based on the first $n$ samples, then sequence $\left\{Y_{k}\right\}_{k=1}^{\infty}$ is a martingale with respect to $\left\{X_{k}\right\}_{k=1}^{\infty} .$ Indeed, we have
+$$
+\mathbb{E}\left[Y_{n+1} \mid X_{1}, \ldots, X_{n}\right]=\mathbb{E}\left[\frac{g\left(X_{n+1}\right)}{f\left(X_{n+1}\right)}\right] \prod_{k=1}^{n} \frac{g\left(X_{k}\right)}{f\left(X_{k}\right)}=Y_{n}
+$$
+using the fact that $\mathbb{E}\left[\frac{g\left(X_{n+1}\right)}{f\left(X_{n+1}\right)}\right]=1$.
+\end{exma}
+\subsection{Concentration Bounds for Martingale Difference Sequences}
+We begin by stating and proving a general Bernstein-type bound for a martingale difference sequence, based on imposing a sub-exponential condition on the martingale differences.
+\begin{thma}\label{thmamfs}%{\bfs{Concentration Bounds for Martingale Difference Sequences}}
+Let $\left\{\left(D_{k}, \mathcal{F}_{k}\right)\right\}_{k=1}^{\infty}$ be a martingale difference sequence, and suppose that $\mathbb{E}\left[e^{\lambda D_{k}} \mid \mathcal{F}_{k-1}\right] \leq e^{\lambda^{2} \nu_{k}^{2} / 2}$ almost surely for any $|\lambda|<1 / b_{k} .$ Then the following hold:
+\begin{enumerate}[(a)]
+    \item The sum $\sum_{k=1}^{n} D_{k}$ is sub-exponential with parameters $\left(\sqrt{\sum_{k=1}^{n} \nu_{k}^{2}}, b_{*}\right)$ where $b_{*}:=$ $\max _{k=1, \ldots, n} b_{k}$
+    \item The sum satisfies the concentration inequality
+$$
+\mathbb{P}\left[\left|\sum_{k=1}^{n} D_{k}\right| \geq t\right] \leq\left\{\begin{array}{ll}
+2 e^{-\frac{t^{2}}{2 \sum_{k=1}^{n} \nu_{k}^{2}}} & \text { if } 0 \leq t \leq \frac{\sum_{k=1}^{n} \nu_{k}^{2}}{b_{*}} \\
+2 e^{-\frac{t}{2 b_{*}}} & \text { if } t>\frac{\sum_{k=1}^{n} \nu_{k}^{2}}{b_{*}} .
+\end{array}\right.
+$$
+\end{enumerate}
+\end{thma}
+\begin{rema}
+We only need to consider the sub-exponential since other cases like sub-Gaussian or bounded variables are just special cases of sub-exponential variables.
+\end{rema}
+\begin{proof}
+We follow the standard approach of controlling the moment generating function of $\sum_{k=1}^{n} D_{k}$, and then applying the Chernoff bound. For any scalar $\lambda$ such that $|\lambda|<\frac{1}{b_{*}}$, conditioning on $\mathcal{F}_{n-1}$ and applying iterated expectation yields
+$$
+\begin{aligned}
+\mathbb{E}\left[e^{\lambda\left(\sum_{k=1}^{n} D_{k}\right)}\right] &\left.=\mathbb{E}\left[e^{\lambda\left(\sum_{k=1}^{n-1} D_{k}\right)}\right] \mathbb{E}\left[e^{\lambda D_{n}} \mid \mathcal{F}_{n-1}\right]\right] \\
+& \leq \mathbb{E}\left[e^{\lambda \sum_{k=1}^{n-1} D_{k}}\right] e^{\lambda^{2} \nu_{n}^{2} / 2}
+\end{aligned}
+$$
+where the inequality follows from the stated assumption on $D_{n}$. Iterating this procedure yields the bound $\mathbb{E}\left[e^{\lambda \sum_{k=1}^{n} D_{k}}\right] \leq e^{\lambda^{2} \sum_{k=1}^{n} \nu_{k}^{2} / 2}$, valid for all $|\lambda|<\frac{1}{b_{*}} .$ By definition, we
+conclude that $\sum_{k=1}^{n} D_{k}$ is sub-exponential with parameters $\left(\sqrt{\sum_{k=1}^{n} \nu_{k}^{2}}, b_{*}\right)$, as claimed. The tail bound follows by applying Chernoff bounds for sub-exponential (\cref{thmchernoffexp}).
+\end{proof} 
+
+In order for Theorem $2.3$ to be useful in practice, we need to isolate sufficient and easily checkable conditions for the differences $D_{k}$ to be almost surely sub-exponential (or sub-Gaussian when $b=+\infty$ ). As discussed previously, bounded random variables are sub-Gaussian, which leads to the following corollary:
+
+\begin{cora}{\bfs{Azuma-Hoeffding}}\label{eqazuma}
+ Let $\left\{\left(D_{k}, \mathcal{F}_{k}\right)\right\}_{k=1}^{\infty}$ be a martingale quence for which there are constants $\left\{\left(a_{k}, b_{k}\right)\right\}_{k=1}^{n}$ such that $D_{k} \in\left[a_{k}, b_{k}\right]$, for all $k=1, \ldots, n .$ Then, for all $t \geq 0$,
+$$
+\mathbb{P}\left[\left|\sum_{k=1}^{n} D_{k}\right| \geq t\right] \leq 2 e^{-\frac{2 t^{2}}{\sum_{k=1}^{n} t (b_{k}-a_{k})^{2}}}
+$$
+\end{cora} 
+\begin{proof}
+Using \cref{remaba,thmamfs}.
+\end{proof} 
+\begin{rema}
+Here \cref{eqazuma} is a direct corollary of \cref{thmamfs}. We will extend the \cref{eqazuma} of \tb{bounded difference} to more general cases in \cref{secbdt}. You can take it as a warm up here.
+\end{rema}
+
+\section{Bounded Difference Technique}\label{secbdt}
+Some of the results can be directly get from the previous sub-Gaussian and sub-exponential cases since bounded variables are sub-Gaussian (and sub-exponential of course).
+\subsection{Inequalities for Bounded Independent Summands}\label{ssecindsum}
+In this subsection we present the `Hoeffding' family of inequalities for sums
+of independent bounded random variables. In the next subsection we extend these to inequalities involving martingales. Of course we can direct apply \cref{thmhoegaussian} and \cref{thmhoeexp} to the results. However, we show some new proof technique.
+
+\subsubsection{Results}\label{ssecresult}
+We shall take the following inequality as our starting point.
+\begin{thma}{\bfs{Bounds of Independent Bounded Random Variables}}\label{thmbbb} Let the random variables $X _{1}, \ldots, X _{ n }$ be independent, with $0 \leq X_{k} \leq 1$ for each $k .$ Let $\bar{X}=\frac{1}{n} \sum X_{k}, p=\E[\bar{X}]$, and $q=1-p$ Then for $0 \leq t<q$
+\begin{align}
+ \P ( \bar{X} - p \geq t ) \leq\left[\left[\frac{ p }{ p + t }\right]^{ p + t }\left[\frac{ q }{ q - t }\right]^{ q - t }\right]^{ n }   \label{eqboundedind}
+\end{align}
+\end{thma}
+\begin{rema}{\bfs{\gls{iid} Bernoulli}}
+A special case of interest is when each random variable $X _{ k }$ is  $1$ with
+probability $p$ and $0$ with probability $q$, i.e. $X_i\sim \mathrm {Bernoulli} \left(p\right)$.
+\end{rema}
+\begin{cora}\label{cora444}
+Let the random variables $X _{1}, \ldots, X _{ n }$ be independent, with $0 \leq X_{k} \leq 1$ for each $k$, let $\bar{X}=\frac{1}{n} \sum X_{k}$ and let $p=\E[\bar{X}]$
+\begin{enumerate}[(a)]
+    \item For $t>0$,
+\begin{align}
+    \P ( \bar{X} - p \geq t) \leq \exp \left(-2 n t^{2}\right)\label{eq44a1}
+\end{align}
+\begin{align}
+    \P (\bar{X}- p \leq-t) \leq \exp \left(-2 nt ^{2}\right)\label{eq44a2}
+\end{align}
+\item For $0<\epsilon<1$
+\begin{align}
+    \P (\bar{X}- p \geq \epsilon p ) \leq \exp \left(-\frac{1}{3} \epsilon^{2} np \right)\label{eq44b1}
+\end{align}
+\begin{align}
+    \P ( \bar{X} - p \leq-\epsilon p ) \leq \exp \left(-\frac{1}{2} \epsilon^{2} np \right)\label{eq44b2}
+\end{align}
+\end{enumerate}
+\end{cora} 
+\begin{rema}{\bfs{which one to use}}
+The inequalities in (a) are perhaps the basic workhorses, but often \tb{$p$ is
+small} in applications and then the inequalities in (b) may be better. Bounds in \cref{cora444} are weaker than that in \cref{thmbbb}, but will more useful because of its simple form.
+\end{rema}
+\begin{rema}{\bfs{does it exist better bounds? }}
+The answer is yes. For example, \cref{eq44b1} can be improved to 
+\begin{align}
+    \P (\bar{X}- p \geq \epsilon p ) \leq \exp \left(-\frac{1}{2} \epsilon^{2} np + \frac{1}{6}\epsilon^{3} np \right)\label{eqinmpr}
+\end{align}
+See \cite[p.22 Corollary 2.2.]{janson2011random} for details. Briefly speaking, they use the same proof technique as in next subsection with just slightly different chosen function: 
+
+From \cref{eqboundedind}, we select  
+\begin{align*}
+    -\frac{1}{n}\log \left[\left[\frac{ p }{ p + t }\right]^{ p + t }\left[\frac{ q }{ q - t }\right]^{ q - t }\right]^{ n } & =p\left(\frac{p+t}{p}\right)\log \frac{p+t}{p} +q\left(\frac{q-t}{q}\right)\log \frac{q-t}{q} \\
+    & = p \varphi(\frac{t}{p}) +q \varphi(\frac{-t}{q})
+\end{align*}
+where 
+$$\varphi(x) = (1+x)\log (1+x) -x \text{ with } x \ge -1$$
+We have $\varphi(x)>0$ for $x<0$. We therefore have the lower bound $p \varphi(\frac{t}{p}) $.  Since $\varphi(0)=0$ and $\varphi^{\prime}(x)=\log (1+x) \leq x$, we have $\varphi(x) \geq x^{2} / 2$ for
+$-1 \leq x \leq 0 ;$ hence \cref{eq44b2}  follows. Similarly, $\varphi(0)=\varphi^{\prime}(0)=0$ and
+$$
+\varphi^{\prime \prime}(x)=\frac{1}{1+x} \geq \frac{1}{(1+x / 3)^{3}}=\left(\frac{x^{2}}{2(1+x / 3)}\right)^{\prime \prime}
+$$
+whence $\varphi(x) \geq x^{2} /(2(1+x / 3)) .$  In conclusion we get, 
+$$ \P (\bar{X}- p \geq \epsilon p ) \leq \exp \Big(-n p\varphi(\epsilon)\Big) \leq \exp \left(-\frac{np\epsilon^{2}}{2(1+\epsilon/ 3)}\right)$$
+ 
+ which is better than \cref{eq44b1}. However $(1+\epsilon/ 3)^{-1} \geq(1-\epsilon / 3)$, we therefore get \cref{eqinmpr}.
+\end{rema}
+
+For a consistent exhibition, we recall the general case: Hoeffding bound for independent bounded random variables:
+\begin{cora}{\bfs{Hoeffding Bound for Bounded Random Variable: repeat of  \cref{corhoeffbound}}}\label{correphoeff}
+
+If $X_{i} \in[a_i, b_i]$ for all $i=1,2, \ldots, n$, then it is sub-Gaussian with parameter  $\sigma=\frac{b_i-a_i}{2}$. Let $\bar{X}=\frac{1}{n} \sum X_{k}$ and let $p=\E[\bar{X}]$ so that we obtain the bound
+$$
+\mathbb{P}\left[\bar{X}-p\right] \geq t \leq e^{-\frac{2 n^2t^{2}}{\sum_{i}^n(b_i-a_i)^{2}}}
+$$
+If $X_{i}$ are \gls{iid}, i.e. $a=a_1=\ldots=a_n$ and $b=b_1=\ldots=b_n$, we then have
+$$
+\mathbb{P}\left[\bar{X}-p\right] \geq t \leq e^{-\frac{2 nt^{2}}{(b-a)^{2}}}
+$$
+\end{cora}
+
+
+\subsubsection{Proofs}\label{ssecproof}
+We outline the proofs for the theorems or corollaries shown in last subsection.
+\begin{proof}{\bfs{\cref{thmbbb}}}\label{proof:thmbbb}
+Let
+$m =( p + t ) n$. For $ \geq 1,$
+\begin{align*}
+\P(\sum X _{ k } \geq m )&\leq \E \left[ s ^{ \sum X_{ k }- m }\right]\\
+&= s ^{- m } \prod \E[ s ^{X_{ k }}]\\
+&\le s ^{- m } \prod\left( q _{ k }+ p _{ k } s \right) \\
+&\leq s ^{- m }( q + ps )^{ n }
+\end{align*}
+since geometric means are at most arithmetic means and 
+$$
+s^x \le xs^1 + (1-x) s^0 \text{  for all $x\in[0,1]$ (Jensen's inequality)} \Rightarrow \E[ s ^{X_{ k }}]\le q _{ k }+ p _{ k } s
+$$
+Now set $s=\frac{(p+t) q}{p(q-t)}$ (get from derivative $=0$) to obtain the desired inequality.
+\end{proof}
+\begin{rema}{\bfs{comparison between this proof and the Chernoff}}\label{remasvsexp}
+Compare to Chernoff Bounds using Fenchel-Legendre transform with  base $e$, here in \cref{proof:thmbbb}, we use a general base $s$. But they are equivalent.
+In Chernoff, we use a parameter $\lambda$ to select the best bound using Fenchel-Legendre transform:
+$$
+\mathbb{P}[(X-\mu) \geq t]=\mathbb{P}\left[e^{\lambda(X-\mu)} \geq e^{\lambda t}\right] \leq \frac{\mathbb{E}\left[e^{\lambda(X-\mu)}\right]}{e^{\lambda t}}\le e^{-I(t)}.
+$$
+Here it use the parameter $s$ to get the best bound.
+\end{rema}
+
+\begin{proof}{\bfs{\cref{cora444}}}\label{proof:cora444}
+
+(a) Let $f (t)=( p + t ) \ln \frac{ p }{ p + t }+( q - t ) \ln \frac{ q }{ q - t }$ for $- p < t < q$. Then
+$$
+f^{\prime}(t)=\ln \frac{p(q-t)}{(p+t) q}
+$$
+and
+$$
+f ^{\prime\prime}( t )=-\frac{1}{( p + t )( q - t )} \leq-4
+$$
+since
+$$
+(p+t)(1-(p+t)) \leq \frac{1}{4}
+$$
+But $f (0)= f ^{\prime}(0)=0$, and so it follows from Taylor's theorem that for $0 \leq t < q$
+\begin{align*}
+    f({t}) &=t^{2} / 2{f}^{\prime \prime}( {s}) \quad \text { for some }  {s}, 0 \leq  {s} \leq  {t} \\ & \leq-2  {t}^{2} 
+\end{align*}
+
+The inequality \cref{eq44a1} now follows from \cref{eqboundedind}, and by considering $1- X _{ k }$ we obtain \cref{eq44a2}
+
+(b) Now let $g(x)=f(x p)$, for $0 \leq x \leq 1, x p<q$. Then $g^{\prime}(x)=p f^{\prime}(x p)$ and
+$$
+g^{\prime \prime}(x)=p^{2} f^{\prime \prime}(x p)=-\frac{p}{(1+x)(q-x p)}\leq- \frac{p}{1+x} 
+$$
+and after integrating we get
+$$
+g'(x) \leq-p \ln (1+x)\le -\frac{2px}{3}
+$$
+and one step further we get
+$$
+g(x) \leq -\frac{px^2}{3}
+$$
+Together with \cref{eqboundedind} this yields \cref{eq44b1}.
+
+
+
+Finally let $h ( x )= g (- x )$ for $0 \leq x <1 .$ Then $h ^{\prime}( x )=- g ^{\prime}(- x )$ and
+$h ^{\prime \prime}( x )= g ^{\prime \prime}(- x ) .$ Thus $h (0)= h ^{\prime}(0)=0$ and
+$$
+h^{\prime \prime}(x)=-\frac{p}{(1-x)(q+x p)} \leq-p
+$$
+so $h ( x ) \leq- px ^{2} / 2$.
+\end{proof}
+\begin{rema}{\bfs{Taylor vs. Integrate}}
+In (b), for the first inequality we can use $$
+g^{\prime \prime}(x)=p^{2} f^{\prime \prime}(x p)=-\frac{p}{(1+x)(q-x p)}\leq- \frac{p}{1+x} \le -p/2
+$$
+to get $ g(x) \leq -\frac{px^2}{4}$. But it is slightly worse than $ -\frac{px^2}{3}$. 
+\end{rema}
+
+\subsection{Inequalities for Bounded Martingale Difference}
+Of course we already have Azuma-Hoeffding from \cref{secmar}. We however will use the method shown in \cref{ssecindsum} to show some results. We first restate Azuma-Hoeffding with a corollary.
+\begin{thma}{\bfs{Azuma-Hoeffding: repeat of \cref{eqazuma}}}\label{eqazumarep}
+ Let $\left\{\left(D_{k}, \mathcal{F}_{k}\right)\right\}_{k=1}^{\infty}$ be a martingale quence for which there are \tb{constants} $\left\{\left(a_{k}, b_{k}\right)\right\}_{k=1}^{n}$ such that $D_{k} \in\left[a_{k}, b_{k}\right]$, for all $k=1, \ldots, n .$ Then, for all $t \geq 0$,
+$$
+\mathbb{P}\left[\left|\sum_{k=1}^{n} D_{k}\right| \geq t\right] \leq 2 e^{-\frac{2 t^{2}}{\sum_{k=1}^{n} t (b_{k}-a_{k})^{2}}}
+$$
+\end{thma} 
+We can extend \cref{eqazumarep} a little bit to the following corollary:
+\begin{cora}{\bfs{Measurable Bounded}}
+Let $\calF_0=(\emptyset,\Omega)\subseteq \calF_1 \subseteq \calF_1 \subseteq ...\subseteq \calF_n$ be a filtration. Let the intergrable
+random variable $X$ be $\calF_{ n }$ -measurable, and let $X _{0}, X _{1}, \ldots, X _{ n }$ be the martingale obtained by setting $X _{ k }= \E \left[ X \mid \calF_{ k }\right] .$ Suppose that for each $k =1, \ldots, n$ there is a
+\tb{constant} $c_{k}$ and an \tb{$\calF _{k-1}$-measurable} function $a_{ k }$ such that 
+\begin{equation}
+    a_{k} \leq X_{k} \leq a_{k}+c_{k}
+\end{equation}
+Then for any $t>0$,
+\begin{align*}
+  \P( X - \E X \geq t ) \leq \exp \left(-\frac{t ^{2} }{2\sum c_{ k }^{2}}\right) \\
+\P( X - \E X \leq- t ) \leq \exp \left(-\frac{t ^{2}}{ 2\sum c _{ k }^{2}}\right)  
+\end{align*}
+\end{cora}
+\begin{proof}
+Nothing special, we can still use the iteration technique with the martingale difference sequence $D_k=X_k-X_{k-1}$. We first need to note that since $ a_{k} \leq X_{k} \leq a_{k}+c_{k}$ and $a_k\in \calF_k$, by take expectation w.r.t $\calF_k$ ,we have 
+$$a_k\le X_{k-1}\le  a_{k}+c_{k}$$
+We therefore have $$|D_k|\le c_k.$$ Furthermore,
+\begin{align*}
+\mathbb{E}\left[e^{\lambda\left(\sum_{k=1}^{n} D_{k}\right)}\right] &=\mathbb{E}\left[e^{\lambda\left(\sum_{k=1}^{n-1} D_{k}\right)}\right] \mathbb{E}\left[e^{\lambda D_{n}} \mid \mathcal{F}_{n-1}\right] \\
+& \leq \mathbb{E}\left[e^{\lambda \sum_{k=1}^{n-1} D_{k}}\right] e^{\lambda^{2} c_{n}^{2} /2}
+\end{align*}
+where the inequality follows from the stated assumption on $D_{n}$. Iterating this procedure yields the bound.
+\end{proof}
+\begin{rema}{\bfs{typo in \cite{mcdiarmid1989method}}}
+That paper says $\P( X - \E X \geq t ) \leq \exp \left(-\frac{2t ^{2} }{\sum c_{ k }^{2}}\right)$ which is not correct. The error comes from it mistakes $X_k$ as $D_k$, and one counterexample is $a_i$ and $b_i$ are constants.
+\end{rema}
+\subsubsection{New Conclusions and Proofs (analogy to \cref{ssecresult,ssecproof})}
+
+\begin{thma}\label{thmbbbdd}
+Let $\left\{\left(D_{k}, \mathcal{F}_{k}\right)\right\}_{k=1}^{\infty}$ be a martingale difference sequence with $-a_{k} \leq D_{k}$ $\leq 1- a _{ k }$ for each $k$, for suitable \tb{constants} $a _{ k }$. Let $a =\frac{1}{ n } \sum a_{ k }$ and $\bar{ a }=1- a$. Then
+for any $t>0$
+$$
+P \left[ \sum D_{ k } \geq nt \right] \leq\left[\left[\frac{ a }{ a + t }\right]^{ a + t }\left[\frac{\bar{ a }}{\bar{ a }- t }\right]^{\bar{ a }- t }\right]^{ n }
+$$
+\end{thma} 
+\begin{rema}
+To obtain \cref{thmbbb} from \cref{thmbbbdd} set $X _{ k }= D_{ k }+a_{ k }$, with $a_k =\E[X_k]$
+\end{rema}
+
+\begin{proof}
+We use the iteration shown in the proof of \cref{thmamfs} and the technique shown in the proof of \cref{thmbbb} (or \cref{remaba2}):
+
+ Let $S_{k}=\sum_{i=1}^{k} D_{i}$. For any $h >0$,
+\begin{align*}
+ &\P (S_{ n } \geq nt)\\
+&\leq e ^{- hnt } \E[e^{hS_{ n -1}}]\E[e^{hD_k}\mid \calF_{n-1}]\\
+&\leq e ^{- hnt } \E[e^{hS_{ n -1}}]\left((1-a_n)e^{-ha_n}+a_n e^{h(1-a_n)}\right)\\
+&\leq e ^{- hnt } e^{-h\sum a_k}\prod \left((1-a_k)e^{-ha_k}+a_k e^{h(1-a_k)}\right)\\
+&\leq e^{-h n t} e^{-h n a}\left[1-a+a e^{h}\right]^{n}
+\end{align*}
+
+Now set $e ^{ h }=\frac{( a + t ) \bar{ a }}{ a (\bar{ a }- t )}$ to obtain the desired inequality. $e^h$ here can be view as $s$ as we have clarified in \cref{remasvsexp}.
+
+\end{proof}
+
+\begin{cora}\label{coraafaa}
+As above, let $\left\{\left(D_{k}, \mathcal{F}_{k}\right)\right\}_{k=1}^{\infty}$ be a martingale difference sequence with $-a_{k} \leq D_{k} \leq 1-a_{k}$ for each $k$, for suitable \tb{constants} $a_{k}$; and let $a=\frac{1}{n} \sum a_{k}$
+\begin{enumerate}[(a)]
+    \item For $t>0$,
+\begin{align}
+    \P( \sum D_{ k } \ge t )\leq \exp\left(-\frac{2 t ^{2} }{ n} \right)\label{eq416a1}
+\end{align}
+\begin{align}
+    \P( \sum D_{ k } \leq-t ) \leq \exp\left(-\frac{2 t ^{2}}{ n} \right)\label{eq416a2}
+\end{align}
+\item For $0<\epsilon<1$
+\begin{align}
+    \P( \sum D_{ k } \ge \epsilon a ) \leq \exp\left(-\frac{\frac{1}{3}\epsilon^2a }{ n} \right)\label{eq416b1}
+\end{align}
+\begin{align}
+    \P(\sum D_{ k } \le -\epsilon a ) \leq \exp\left(-\frac{\frac{1}{2}\epsilon^2a }{ n} \right)\label{eq416b2}
+\end{align}
+\end{enumerate}
+\end{cora} 
+\begin{rema}{\bfs{which one to use}}
+The inequalities in (a) are perhaps the basic workhorses, but often \tb{$a$ is
+small} in applications and then the inequalities in (b) may be better. Bounds in \cref{coraafaa} are weaker than that in \cref{thmbbbdd}, but will more useful because of its simple form.
+\end{rema}
+
+\begin{thma}{\bfs{Bounded Differences Inequality I}}\label{thmadiff}
+
+Let $Z_{1}, \ldots, Z_{ n }$ be random variables with $Z_{ k }$ taking values in a set $A_{k}$, and let $Z^n$ denote the random vector $\left[Z_{1}, \ldots, Z_{n}\right] .$ Let $f: \prod A_{k} \rightarrow R$ be an appropriately measurable function. Suppose that there are \tb{constants} $c_{1}, \ldots, c_{n}$ so
+that
+\begin{align}
+\Big|&\E \left[ f (Z^n) \mid [Z _{1}, \ldots, Z _{ k -1}]=[z _{1}, \ldots, z_{ k -1}], Z_{ k }= z_{ k }\right] \nn
+&- \E \left[ f (Z^n) \mid\left[ Z_{1}, \ldots, Z_{ k -1}\right]=\left[ z_{1}, \ldots, z_{ k -1}\right], Z_{ k }= z_{ k }^{\prime}\right] \Big| \leq c_{ k }\label{eqcondi}
+\end{align}   
+for each $k =1, \ldots, n$ and $z_{i} \in A _{ i }( i =1, \ldots, k -1)$ and $z _{ k }, z _{ k }^{\prime} \in A _{ k }$. Then for any $t >0$,
+$$
+\P\bigg(\Big| f (Z^k)- \E f (Z^k)\Big| \geq t \bigg) \leq 2 \exp \left(-\frac{2 t ^{2} }{\sum c_{ k }^{2}}\right)
+$$
+\end{thma}
+
+\begin{proof}
+It follow easily from \cref{eqazumarep}. 
+Let $\calF_{ k }$ be the $\sigma(Z_{1}, \ldots, Z _{ k }).$ Let the Doob martingale be $X_{ k }= \E [ f (Z^n) \mid \calF_k ]$
+and consider the associated martingale difference sequence
+$$
+D_{k}=\mathbb{E}\left[f(Z^n) \mid Z_{1}, \ldots, Z_{k}\right]-\mathbb{E}\left[f(Z^n) \mid Z_{1}, \ldots, Z_{k-1}\right]
+$$
+We claim that $D_{k}$ lies in an interval of length at most $c_{k}$ almost surely. In order to prove this claim, define the random variables
+$$
+a_{k}:=\inf_{z_k\in A_k} \mathbb{E}\left[f(Z^n) \mid Z_{1}, \ldots, Z_{k-1}, z_k\right]-\mathbb{E}\left[f(Z^n) \mid Z_{1}, \ldots, Z_{k-1}\right]
+$$
+and
+$$
+b_{k}:=\sup _{z_k\in A_k} \mathbb{E}\left[f(Z^n) \mid Z_{1}, \ldots, Z_{k-1}, z_k\right]-\mathbb{E}\left[f(Z^n) \mid Z_{1}, \ldots, Z_{k-1}\right]
+$$
+On one hand, we have
+$$
+D_{k}-a_{k}=\mathbb{E}\left[f(Z^n) \mid Z_{1}, \ldots, Z_{k}\right]-\inf _{x} \mathbb{E}\left[f(Z^n) \mid Z_{1}, \ldots, Z_{k-1}, x\right]
+$$
+so that $D_{k} \geq a_{k}$ almost surely. A similar argument shows that $D_{k} \leq b_{k}$ almost surely. 
+
+We now need to show that $b_{k}-a_{k} \leq c_{k}$ almost surely. This comes directly from \cref{eqcondi}:
+
+\begin{align*}
+    b_{k} - a_{k} =\sup_{z_k\in A_k} \mathbb{E}\left[f(Z^n) \mid Z_{1}, \ldots, Z_{k-1}, z_k\right]-\inf_{z_k\in A_k} \mathbb{E}\left[f(Z^n) \mid Z_{1}, \ldots, Z_{k-1}, z_k\right] \le c_k\\
+\end{align*}
+
+
+Thus, the variable $D_{k}$ lies within an interval of length $c_{k}$ at most surely, so that the claim follows from \cref{eqazumarep}.
+\end{proof}
+
+We also show a corollary where the condition \cref{eqcondi} is replaced by a stronger but more attractive condition: functions differs only in one coordinate.
+\begin{defa}{\bfs{Bounded Differences }}\label{defboundeddiff}
+We say that $f: \mathbb{R}^{n} \rightarrow \mathbb{R}$ satisfies the bounded difference inequality with parameters $\left(c_{1}, \ldots, c_{n}\right)$ if for each $k=1,2, \ldots, n$,
+$$
+\left|f\left(z_{1}, \ldots, z_{n}\right)-f\left(z_{1}, \ldots, z_{k-1}, z_{k}^{\prime}, z_{k+1}, \ldots, z_{n}\right)\right| \leq c_{k} \quad \text { for all } z_k, z_k^{\prime} \in \mathbb{R}^{n}
+$$
+\end{defa}
+\begin{exma}
+For instance, if the function $f$ is $L$-Lipschitz with respect to the Hamming norm $d_{H}(x, y)=\sum_{i=1}^{n} \indicate{\left[x_{i} \neq y_{i}\right]}$, which counts the number of positions in which $x$ and $y$ differ, then the bounded difference inequality holds with parameter $L$ uniformly across
+all coordinates.
+\end{exma}
+
+\begin{cora}{\bfs{Bounded Differences Inequality II}}\label{coradiff}
+
+Suppose that $f$ satisfies the bounded difference property with parameters $\left(c_{1}, \ldots, c_{n}\right)$ and that the random vector $Z^n=\left(Z_{1}, Z_{2}, \ldots, Z_{n}\right)$ has \tb{independent} components. Then
+$$
+\mathbb{P}[|f(Z^n)-\mathbb{E}[f(Z^n)]| \geq t] \leq 2 e^{-\frac{2t^{2}}{\sum_{k=1}^{n} c_{k}^{2}}} \quad \text { for all } t \geq 0
+$$
+\end{cora}
+\begin{proof}
+We only need to prove $b_k-a_k\le c_k$ with all the notations from last proof. Observe that by the independence of $\left\{Z_{k}\right\}_{k=1}^{n}$, from \cite[p. 209 Example 4.1.7.]{durrett2019probability} we have
+\begin{align}
+    \mathbb{E}\left[f(Z^n) \mid Z_{1}, \ldots, Z_{k}\right]=\mathbb{E}_{k+1}\left[f\left(Z_{1}, \ldots, Z_{k}, Z_{k+1}^{n}\right)\right]   \text{ for any vector }\left(Z_{1}, \ldots, Z_{k}\right)\label{eqtg}
+\end{align}
+where $\mathbb{E}_{k+1}$ denotes expectation over $Z_{k+1}^{n}:=\left(Z_{k+1}, \ldots, Z_{n}\right) .$ Consequently, we have
+$$
+\begin{aligned}
+b_{k}-a_{k} &=\sup _{z} \mathbb{E}_{k+1}\left[f\left(Z_{1}, \ldots, Z_{k-1}, z, Z_{k+1}^{n}\right)\right]-\inf _{z} \mathbb{E}_{k+1}\left[f\left(Z_{1}, \ldots, Z_{k-1}, z, Z_{k+1}^{n}\right)\right]\\
+& \leq \sup _{z, z'} \bigg| \mathbb{E}_{k+1}\left[f\left(Z_{1}, \ldots, Z_{k-1}, z, Z_{k+1}^{n}\right)-f\left(Z_{1}, \ldots, Z_{k-1}, z', Z_{k+1}^{n}\right)\right]\bigg| \\
+& \leq c_{k},
+\end{aligned}
+$$
+using the bounded differences assumption. Thus, the variable $D_{k}$ lies within an interval of length $c_{k}$ at most surely, so that the claim follows as a corollary of the Azuma-Hoeffding inequality.
+\end{proof}
+
+\begin{rema}{ \cref{thmadiff} vs. \cref{coradiff} }
+We does not need independence in \cref{thmadiff} since it directly gives conditions over $$\mathbb{E}\left[f(Z^n) \mid Z_{1}, \ldots, Z_{k}\right].$$
+In \cref{coradiff}, we indeed need independence, see \cref{eqtg}
+\end{rema}
+\begin{rema}{\bfs{$L$ -Lipschitz }}
+In the special case when $f$ is $L$ -Lipschitz with respect to the Hamming norm, \cref{coradiff} implies that
+\begin{align}
+    \mathbb{P}[|f(Z^n)-\mathbb{E}[f(Z^n)]| \geq t] \leq 2 e^{-\frac{2 t^{2}}{n L^{2}}}\label{eqhamm}
+\end{align}
+for all $t \geq 0$
+\end{rema} 
+\subsubsection{Possible Improvement (Apply Doob's Maximal Inequality)}
+We can apply Doob's Maximal Inequality \cite[p.236 Theorem 4.4.2]{durrett2019probability} to prove all the results.
+Let $D_{1}, \ldots, D_{ n }$ be a martingale difference sequence, let $h >0$, let $X_{ k }= D_{1}+\ldots+ D_{ k }$ and let $T_{ k }=\exp (hX_{ k })$. As long as the $T_{ k }$ are integrable,
+$T_{1}, \ldots, T _{ n }$ forms a submartingale. We then apply Doob's maximal inequality to $T_K$ and get for all $t>0$,
+\begin{align*}
+    \P(\max _{k\le n} X_{k} \geq t)&=\P(\max_{k} T_{k} \geq e^{h t}) \\
+&\leq e^{-h t} \E[T_{n}]=e^{-h t} \E[e^{h X_{n}}]
+\end{align*}
+It follows that in all our inequalities in this section we may replace $\sum D_{k}$
+by $\max X_{k}$, and similarly for independent summands.
+
+
+\section{Applications of \cref{secbdt}}
+Martingales and the bounded difference property play an important role in analyzing the properties of random graphs, and other random combinatorial structures. We introduce random graphs examples in \cref{ssec:graphexam,ssec:graphexamII} and some other examples in \cref{ssec:someexam}.
+
+\begin{exma}{\bfs{Classical Hoeffding from Bounded Differences}}
+As a warm-up, let us show how the classical Hoeffding bound \cref{correphoeff} (i.e. \cref{corhoeffbound}) for bounded variables-say $X_{i} \in[a, b]$ almost surely-follows as an immediate corollary of the \cref{coradiff}. Consider the function $f\left(x_{1}, \ldots, x_{n}\right)=\sum_{i=1}^{n}\left(x_{i}-\mu_{i}\right)$, where $\mu_{i}=\mathbb{E}\left[X_{i}\right]$ is the mean of the $i$ th random variable. For any index $k \in\{1, \ldots, n\}$, we have
+\begin{align*}
+\left|f\left(x_{1}, \ldots, x_{n}\right)-f\left(x_{1}, \ldots, x_{k-1}, x_{k}^{\prime}, x_{k+1}, \ldots, x_{n}\right)\right| =\left|x_{k}-x_{k}^{\prime}\right| \leq b-a,
+\end{align*}
+satifying \cref{defboundeddiff},
+showing that $f$ satisfies the bounded difference inequality in each coordinate with parameter $L=b-a$. Consequently, it follows from the bounded difference inequality\ cref{coradiff} that
+$$
+\mathbb{P}\left(\left|\sum_{i=1}^{n}\left(X_{i}-\mu_{i}\right)\right| \geq t\right) \leq 2 e^{-\frac{2t^{2}}{n(b-a)^{2}}}
+$$
+which is the classical Hoeffding bound for independent random variables.
+\end{exma}
+
+
+\subsection{Random Graphs I}\label{ssec:graphexam}
+% \paragraph{temp}
+An undirected graph is a pair $G=(V, E)$, composed of a vertex set $V=\{1, \ldots, d\}$ and an edge set $E$, where each edge $e=(i, j)$ is an unordered pair of distinct vertices $(i \neq j) .$ 
+
+The \tb{Erd\"{o}s-R\'{e}nyi random graphs $G_{n,p}$} is one of the most well-studied models: it is defined by a parameter $p(n) \in(0,1)$ that specifies the probability with which each edge $(i, j)$ is included in the graph, independently across all $\left(\begin{array}{l}d \\ 2\end{array}\right)$ edges.  For simplicity we shall focus mainly on the case $p$ constant, with $0< p <1$. Let $q =1- p$
+and $b =1 / q$. 
+\begin{defa}{\bfs{Stable (Independent) Set)}}
+ The independent set ( stable set, coclique or anticlique ) is a set of vertices in a graph, no two of which are adjacent.
+\end{defa}
+\begin{defa}{\bfs{Color and  Chromatic Number}}
+A coloring of $G$ is a partition of the vertices into stable sets; and the \tb{chromatic} number $\chi(G)$ is the least number of blocks (number of colors) in such a partition.
+\end{defa}
+\blue{[may need update of what's the set $A_k$ in each subsection]}
+\subsubsection{Clique Number}
+% \begin{exma}{\bfs{Clique Number}}
+\begin{defa}{\bfs{Clique and Clique Number}}
+A graph \tb{clique} $C$ is a subset of vertices such that $(i, j) \in E$ for all $i, j \in C$. In other words, a clique is a  complete sub-graph. The \tb{clique number $\cal{C}(G) \in[1, d]$}  of the graph is the  number of vertices in the largest clique. 
+\end{defa}
+When the edges $E$ of the graph are drawn according to some random process, then the clique number $\mathcal{C}(G)$ is a random variable, and we can study its concentration around its mean $\mathbb{E}[\cal{C}(G)]$. Note that the $\binom{n}{2}$-dimensional random vector $Z\coloneqq\left\{X_{i j}\right\}_{i<j}$ specifies the edge set; thus, we may view the clique number $\cal{C}(G)$  as a function $Z \mapsto f(Z) .$ Let $Z^{\prime}$ denote a vector in which a single coordinate of $Z$ has been changed, and let $G^{\prime}$ and $G$ be the associated graphs. It is easy to see that $C\left(G^{\prime}\right)$ can differ from $\cal{C}(G)$  by at most 1 , so that $\left|f\left(Z^{\prime}\right)-f(Z)\right| \leq 1$. Thus, the function $\cal{C}(G)=f(Z)$ satisfies the bounded difference property in each coordinate with parameter $L=1$, so that
+$$
+\mathbb{P}\left[\frac{1}{n}|\mathcal{C}(G)-\mathbb{E}[\mathcal{C}(G)]| \geq \delta\right] \leq 2 e^{-2 n \delta^{2}}
+$$
+Consequently, we see that the clique number of an Erd\"{o}s-R\'{e}nyi random graph is very sharply concentrated around its expectation.
+% \end{exma}
+\subsubsection{Isoperimetric Inequalities: General}
+Consider a finite metric space $( V , d ) .$ We shall be interested in
+particular in the case when $V$ is the vertex set of a graph $G$ and $d$ measures
+distance in the graph. We first give some definitions which will be used in this note.
+\begin{defa}{\bfs{$t$-neighbourhood  $A_{t}$}}
+For $A \subseteq V$ and $t>0$ the  \tb{$t$-neighbourhood  $A_{t}$} of $A$ is the set $\{v \in V$ :
+$d ( v , A ) \leq t \}$, where $d ( v , A )$ is  $\min \{ d ( v , x ): x \in A \}$.
+\end{defa}
+\begin{rema}
+An `isoperimetric inequality' means a lower bound on $\left|A_{t}\right|$ depending on $|A|$ and $t$. 
+\end{rema}
+\begin{defa}{\bfs{partition sequence}}
+In the finite metric space $(V, d )$ a \tb{partition sequence} $\left[\left( \calP_k , c _{ k }\right): k =0, \ldots, n \right]$ consists of a sequence $\calP_{0}, \calP_{1}, \ldots, \calP_{ n }$ of \tb{increasingly refined partitions} of $V$, starting with the trivial partition $\calP_{0}$ (with a single block $V$ ) and ending with the discrete partition $\calP_{ n }$ (into singleton blocks), and a sequence $c_{0}, c_{1}, \ldots, c_{n}$ of numbers with the following property: 
+
+For each $k =1, \ldots, n$, whenever $A , B \in \calP_{k}$ and $A , B \subseteq C \in \calP_{k -1}$ for some $C$ then there is a \tb{bijection} $\varphi: A \mapsto B$ with $d ( x , \varphi( x )) \leq c_{ k }$ for all $x \in A .$
+\end{defa}
+\begin{rema}
+Note $x$ in $A$ and $\varphi(x)$ in $B$. We are trying to find a $1$-$1$ mapping that uniformly bounded the pairwise distance between vertices in$A$ and $B$.
+\end{rema}
+\begin{rema}
+If the space has such a partition sequence we shall say that it has partition size at most $\sum c_{k}^{2} .$ Observe that here $\sum c_{k}$ is always at least the diameter $\max \{ d ( x , y ): x , y \in V \} .$ Usually we shall have each $c_{ k }=1$, and indeed we do so in each of the example below.
+\end{rema}
+\paragraph{Several Examples for Illustration:}
+\begin{exma}{\bfs{hypercube $Q_n$}}\label{examcube} The n-cube $Q_{n}$ has vertex set $V=\{0,1\}^{n}$ and two vectors are adjacent if they differ in just one coordinate. Then $Q_{n}$ has diameter and partition size equal to $n$. Indeed we may take $g _{ k }$ as the partition into equivalence classes where \tb{two vectors are equivalent if they agree in the first $k$ digits}. The appropriate function $\varphi$ just switches the kth digit.
+\end{exma} 
+\begin{exma}{\bfs{permutation graph $S_{ n }$ }}\label{examper}
+The `permutation graph' $S_{ n }$ has vertices the permutations of $\{1, \ldots, n \}$ and two vertices $g$ and $h$ are adjacent if $g^{-1}h$ is a \tb{transposition} (just switch two vertices, see short\_AbstractAlgebra.pdf P28). Then $S_{ n }$ has diameter and partition size equal to $n-1$. Indeed we may think of a permutation $g$ as a sequence $( g (1), \ldots, g ( n ))$, and take $\calP_{ k }$ as in \cref{examcube} for $k =0, \ldots, n -1$. If $g \in A, h \in B$ then the appropriate function $\varphi$ acts on $x \in A$ by swapping $g ( k )$ and $h ( k )$
+\end{exma} 
+\begin{exma}{\bfs{generalized permutation graph  $S_{n, k}$}}\label{exampergene} We may generalise the last example as follows  The $k$ -tuple graph $S_{n, k}$ has vertices the $k$ -tuples of distinct members of $\{1, \ldots, n \}$, and two vertices $g$ and $h$ are adjacent if and only if either they differ in
+exactly one coordinate or they differ in exactly two coordinates, say $j$ and $k$, and
+$g ( j )= h ( k ), g ( k )= h ( j ) .$ Thus distinct vertices $g$ and $h$ are adjacent if and only if
+they may be extended to permutations which are adjacent in the permutation
+graph $S_{n}$. The graph $S_{n, k}$ has diameter and partition size equal to $k$ if $k \leq n-1 .$
+\end{exma} 
+\begin{exma}{\bfs{combination graph $\hat{S}_{n, k}$}}
+$\hat{ S }_{ n , k }$ is the graph with vertices the $k$-subsets of an $n$-set, and with two vertices adjacent if and only if the corresponding sets $A, B$ satisfy $| A \backslash B |=| B \backslash A |=1 .$  It is not obvious to design a  partition sequence for $\hat{S}_{n, k}$ but we will see $\hat{S}_{n, k}$ is a `subgraph' (not exactly) of $Q_{n}$ and thus we could use the partition sequence $Q_{n}$ (maybe with different $c_k$, I don't have time to check the $c_k$, maybe still $1$) and still has the concentration. 
+\end{exma}
+
+\begin{rema}{\bfs{$\hat{S}_{n, k}$ vs. $Q^n$}}
+Vertices of the graph $\hat{S}_{n, k}$ is a subset $\{x:\sum x_{i}=k\}$ of vertices set of $\{0,1\}^{ n }$ of the  $Q _{ n } .$ Two vertices of $\hat{ S }_{ n , k }$ are adjacent in $\hat{ S }_{ n , k }$ if and only if they are at distance $2$ in $Q_{n} .$ Thus we see that the concentration phenomenon observed for the  $Q _{ n }$ in \cref{coracube} holds also for the slice $\sum x_{i}=k$. From the above we find that the graphs $0_{k}$ form a normal L\'{e}vy family (see next \cref{defnolevy}) with parameter $c_{2}\approx 1 / 2$.
+\end{rema}
+\begin{rema}{\bfs{$\hat{S}_{n, k}$ vs. odd graph $0_{ k }$}}
+For $k \geq 2$, the odd graph $0_{ k }$ has vertices corresponding to the $( k -1)$-subsets of a $(2k-1)$-set, and two vertices are adjacent if and only if the corresponding sets are disjoint. The graph $\hat{ S }_{2 k -1, k -1}$ has the same vertices as
+$0_{ k }$, and if two vertices are adjacent in $\hat{ S }_{2 k -1, k -1}$ then they are at distance 2 in $0_{ k }$.
+\end{rema}
+
+\paragraph{Basic Theorem}
+\begin{thma}{\bfs{Basic Theorem for Isoperimetric}}\label{thmbasicdiff}
+Suppose that the finite metric space $( V , d )$ has a partition sequence $\left[\left( \calP_k , c _{ k }\right): k =0, \ldots, n \right]$ consists of a sequence $\calP_{0}, \calP_{1}, \ldots, \calP_{ n }$ of {increasingly refined partitions} of $V$. If a function $f$ on $V$ satisfy $|f(x)-f(y)|\le d ( x , y )$ for all $x , y \in V$. Let $X$ be \tb{uniformly distributed} over $V$. Then for any $t >0$,
+\begin{align*}
+\P ( f ( X )- \E f ( X ) \geq t ) &\leq \exp \left(\frac{2 t ^{2}}{\sum c _{ k }^{2}}\right) \\
+\P ( f ( X )- \E f ( X ) \leq- t ) &\leq \exp \left(\frac{-2 t ^{2}}{\sum c _{ k }^{2}}\right)    
+\end{align*}
+\end{thma}
+\begin{rema}{\bfs{distribution of $X$}}
+In \cref{thmbasicdiff}, we use the uniform distribution. Later in \cref{sssec:bio}, we study binomial distribution for $Q_n$.
+\end{rema}
+\begin{proof}
+It follows easily from \cref{thmadiff}. Let $A_k=\calP_k$. Since the partition sequence requires $\calP_{ n }$ only contains singletons, we have $x \in V$ and $z^n=(z_k)_{k=0}^{n}$ with $z_k\in \calP_k$ have a $1-1$ mapping $m$, i.e. $z^n=m(x)$ and $f(z^n)=f(m(x))=f(x)$ (we still abuse notation $f$). Note here $z_k$ is a subset of $V$.
+%We then have that given $x$ and $x'$ are both inside the same partition set  $z_i=z'_i\in A_k$ for all $i=0,..,k-1$. 
+
+We can write $\E \left[ f (Z^n) \mid [Z _{1}, \ldots, Z _{ k -1}]=[z _{1}, \ldots, z_{ k -1}], Z_{ k }= z_{ k }\right] = \frac{1}{|M_{ k }|}\sum_{x\in M_{ k }} f(x)$, where $M_k$ is the set $\{x:y^n = m(x) \text{ and } y_i=z_i \text{ for all $i=1,...,k$ }\}$. Since we have the bijection $\varphi( \cdot )$, we can get  
+\begin{align*}
+    \Big|&\E \left[ f (Z^n) \mid [Z _{1}, \ldots, Z _{ k -1}]=[z _{1}, \ldots, z_{ k -1}], Z_{ k }= z_{ k }\right] \nn
+&- \E \left[ f (Z^n) \mid\left[ Z_{1}, \ldots, Z_{ k -1}\right]=\left[ z_{1}, \ldots, z_{ k -1}\right], Z_{ k }= z_{ k }^{\prime}\right] \Big|\\
+& = \frac{1}{|M_{ k }|} \Big|\sum_{x\in M_{ k }} f(x)-f(\varphi(x)) \Big| \\
+& \le \frac{1}{|M_{ k }|}\sum_{x\in M_{ k }}|f(x)-f(\varphi(x))|\\
+& \le \max d(x,\varphi(x))\\
+&\le c_k
+\end{align*}
+\end{proof}
+\begin{rema}
+Note \cref{coradiff} is not enough for us since we does not have any restriction on $A_i, i\ge k$. The uniform distribution is also important here since otherwise we cannot building $f(x)-f(\varphi(x))$, e.g. we only two points $x$ and $y$ with positive probability but $y\ne \varphi(x)$.
+\end{rema}
+\begin{cora}\label{corbasicdiff}
+Suppose that the finite metric space $( V , d )$ has a partition sequence $\left[\left( \calP_k , c _{ k }\right): k =0, \ldots, n \right]$ consists of a sequence $\calP_{0}, \calP_{1}, \ldots, \calP_{ n }$ of {increasingly refined partitions} of $V$. Let $A \subseteq V$ with $\frac{|A|}{|V|}=\alpha, 0<\alpha<1 .$ Then for any $t \geq t_{0}=\left(\frac{1}{2}\left(\log \frac{1}{\alpha}\right) \sum c_{k}^{2}\right)^{1 / 2}$,
+$$
+\frac{\left|A_{t}\right|}{|V|} \geq 1-\exp \left(-\frac{2\left(t-t_{0}\right)^{2}}{\sum c_{k}^{2}}\right)
+$$
+Thus for any $t>0$ and any $\gamma>0$,
+\begin{align}
+    \frac{\left|A_{t}\right|}{|V|} \geq 1-\left(\frac{1}{\alpha}\right)^{\gamma^{2}} \exp \left(-\frac{2\left(\frac{\gamma}{1+\gamma}\right)^{2} t^{2}}{\sum c_{k}^{2}}\right)\label{eqtdd}
+\end{align}
+\end{cora}
+
+\begin{proof}
+Let $f(x) = d(x,A)$ and $\P$ is the uniform distribution as in \cref{thmbasicdiff}. 
+Let $t_{1}=\E f(X)$. Then by \cref{thmbasicdiff}, we have 
+$$
+\alpha= \P ( f ( X )=0)= \P \left( f ( X ) \leq t _{1}- t _{1}\right) \leq \exp \left(-\frac{2 t _{1}^{2} }{\sum c_{ k }^{2}}\right),
+$$
+and it follows that $t_{1} \leq t_{0}$ since 
+$$
+\alpha =\exp\left( -\frac{2t_0^2}{\sum c_k^2}\right).
+$$
+Now by \cref{thmbasicdiff} again, for $t \geq t_{0}$,
+\begin{align*}
+1-\frac{\left|A_{t}\right|}{|V|} &=\P(f(X)>t) \\
+&\leq  \P\left(f(X)>t_{1}+\left(t-t_{0}\right)\right) \\
+&\leq  \exp \left(-\frac{2\left(t-t_{0}\right)^{2} }{ \sum c_{k}^{2}}\right) .
+\end{align*}
+
+To prove the inequality \cref{eqtdd} consider separately the cases $t \leq(1+\gamma) t_{0}$ and $t \geq(1+\gamma) t _{0}$.
+\end{proof}
+\begin{rema} From the proof, we know
+$$\E f(x)\le  \left(\frac{1}{2}\left(\log \frac{1}{\alpha}\right) \sum c_{k}^{2}\right)^{1 / 2}=t_0$$
+\end{rema}
+
+\paragraph{Corollaries for Examples}
+
+\cref{corbasicdiff} yields remarkable concentration results for the \cref{examcube,examper,exampergene}  above. Let us state these results for the hypercube $Q_{n}$ and the permutation graph $S_{ n }$
+
+
+\begin{cora}{\bfs{Hypercube $Q_{n}$ Concentration}}\label{coracube}
+ Let $A$ be a subset of the  $2^{n}$ vertices of the cube $Q_{n}$,  with $\frac{| A |}{ 2^{ n }}=\alpha, 0<\alpha<1 .$ Then for $t \geq t _{0}=\left(\frac{1}{2}\left(\log \frac{1}{\alpha}\right) n \right)^{1 / 2}$,
+$$ \frac{\left|A_{t}\right|}{ 2^{n}} \geq 1-\exp \left(-2\frac{\left(t-t_{0}\right)^{2}}{ n}\right)
+$$
+Thus for any $t>0$ and $\gamma>0$
+$$
+\frac{\left|A_{t}\right|}{ 2^{n}} \geq 1-\left(\frac{1}{\alpha}\right)^{\gamma^{2}} \exp \left(-\frac{2\left(\frac{\gamma}{1+\gamma}\right)^{2}{t}^{2} }{ n}\right)
+$$
+\end{cora}
+
+\begin{cora}{\bfs{Permutation Graph $S_{ n }$ Concentration}}\label{coraperm}
+ Let $A$ be a subset of the $n!$ vertices of the permutation graph $S_{ n }$, with $\frac{| A |}{ n!}=\alpha, 0<\alpha<1 .$ Then for any $t \geq t _{0}=\left(\frac{1}{2}\left(\log \frac{1}{\alpha}\right) (n-1) \right)^{1 / 2}$,
+$$\frac{\left|A_{t}\right|}{ n!} \geq 1-\exp \left(-2\frac{\left(t-t_{0}\right)^{2}}{ n-1}\right)$$
+Thus for any $t>0$ and $\gamma>0$
+$$
+\frac{\left|A_{t}\right|}{ n!} \geq 1-\left(\frac{1}{\alpha}\right)^{\gamma^{2}} \exp \left(-\frac{2\left(\frac{\gamma}{1+\gamma}\right)^{2}{t}^{2} }{ n}\right)
+$$
+\end{cora}
+
+% \begin{defa}{\bfs{Combination Graph $\hat{S}_{n, k}$}}\label{def:com}
+% $\hat{ S }_{ n , k }$ is the graph with vertices the $k$-combination of an $n$-set, and with two vertices adjacent if and only if the corresponding sets $A, B$ satisfy $| A \backslash B |=| B \backslash A |=1 .$
+% \end{defa}
+\begin{cora}{\bfs{Generalized Permutation Graph $S_{n, k}$ Concentration}}\label{coragecom}
+Let ${ A } \subseteq { V }$ with $\frac{|A| }{|{ V }|}=\alpha, 0<\alpha<1 .$ Then for any $t \geq t_{0}=\left(\frac{1}{2}\left(\log \frac{1}{\alpha}\right) k\right)^{1 / 2}$,
+$$
+\frac{\left|{A}_{t}\right|}{|{V}|} \geq 1-\exp \left(-\frac{2\left(t-t_{0}\right)^{2}}{k}\right)
+$$
+\end{cora}
+
+\begin{cora}{\bfs{Combination Graph $\hat{S}_{n, k}$ Concentration}}\label{coracom}
+Consider the graph $\hat{ G }=\hat{ S }_{ n , k}$, with vertex $\hat{ V }$ say, $|\hat{ V }|=\binom{n}{k}$.
+Let $\hat{ A } \subseteq \hat{ V }$ with $\frac{|\hat{ A }| }{|\hat{ V }|}=\alpha, 0<\alpha<1 .$ Then for any $t \geq t_{0}=\left(\frac{1}{2}\left(\log \frac{1}{\alpha}\right) k\right)^{1 / 2}$,
+$$
+\frac{\left|\hat{A}_{t}\right|}{|\hat{V}|} \geq 1-\exp \left(-\frac{2\left(t-t_{0}\right)^{2}}{k}\right)
+$$
+\end{cora}
+\begin{proof}
+Let $G$ be the generalized permutation graph  $S_{n, k}$ as in \cref{exampergene}, with vertex set $V$. For each vertex $g$ in $V$ let $g$ be the $k$-combination of elements listed in $g$. Let $A =\{ g \in V : \hat{ g } \in \hat{ A }\}$. Then $| A | /| V |=|\hat{ A }| /|\hat{ V }| .$ Also, for each vertex $g$ in $V$
+$$
+d _{ G }( g , A )= d _{\hat{ G }}(\hat{ g }, \hat{ A })
+$$
+Hence, for any $t>0,\left|A_{t}\right| /|V|=\left|\hat{A}_{t}\right| /|\hat{V}| .$ Now we may complete the proof from \cref{coragecom}.
+\end{proof}
+
+\paragraph{L\'{e}vy family}
+
+For a graph G with vertex set $V$ and diameter $D$, and for any $0<\epsilon<1$ let
+$$\alpha(G, \epsilon)=\min \left\{1-\frac{\left|A_{D\epsilon }\right|}{| V |}: A \subseteq V ,| A | /| V | \leq 1 / 2\right\}
+$$
+\begin{defa}{\bfs{L\'{e}vy Family}}
+A sequence $G _{1}, G _{2}, \ldots$ of graphs is a \tb{L\'{e}vy family} if , for every $\epsilon$, $\alpha\left(G _{ n }, \epsilon\right) \to 0$ as $n \rightarrow \infty$
+\end{defa}
+\begin{defa}{\bfs{Concentrated L\'{e}vy Family}}
+It is a \tb{concentrated L\'{e}vy family} if there are $c_{1}, c_{2}>0$ such that
+$\alpha\left(G_{n}, \epsilon\right) \leq c_{1} \exp \left(-c_{2} \epsilon n^{1 / 2}\right)$ for all $n$ and $\epsilon .$ 
+\end{defa}
+
+\begin{defa}{\bfs{Normal L\'{e}vy Family}}\label{defnolevy}
+It is a \tb{normal L\'{e}vy family} if there are $c_{1}, c_{2}>0$ such that
+$\alpha\left(G_{n}, \epsilon\right) \leq c_{1} \exp \left(-c_{2} \epsilon n^{2}\right)$ for all $n$ and $\epsilon .$ 
+\end{defa}
+\begin{rema}
+The corollaries for examples above show that both the family $Q_{n}$ of hypercube  and the family $S_{ n }$ of permutation graph form normal L\'{e}vy families with parameter $c_{2}$ arbitrarily close to $2$. In fact for the $n$ -cube $Q_{n}$ we can do slightly better (see the next subsection \cref{lema:sc}).
+\end{rema}
+ 
+
+\paragraph{Generalization to Group}
+
+The notion of partition sequences above is quite a natural framework
+within which to apply the martingale inequalities. Here we generalize them to groups with similar  partition concept in terms of left cosets (see short\_AbstractAlgebra.pdf P15)
+
+Let $G$ be a (finite) group with a translation invariant metric $d$; that is,
+$$d ( g , h )= d ( rg , rh )= d ( gr , hr )$$ for all $g , h , r \in G .$ Given a subgroup $H$ we have a
+natural metric $\bar{d}$ defined on the set $G/H$ of left cosets $rH$ by setting
+$\bar{d}( r H , s H )= d ( r , s H )$ where of course $d ( r , s H )$ is the minimum value of $d ( r , sh )$ over $h \in H$.
+\begin{thma}{\bfs{Group Level Tail Bounds}}
+Let $G$ be a group with a translation invariant metric d. Let
+$G = G_{0} \supseteq G _{1}  \supseteq \ldots  \supseteq G _{ n }=\{ e \}$ be a \tb{decreasing sequence of subgroups}, and let $c _{ k }$ be
+the diameter of the space $G _{ k -1} / G _{ k }$ for each $k =1, \ldots, n$
+\begin{enumerate}
+    \item Let the real-valued function $f$ on $G$ satisfy $| f ( x )- f ( y )| \leq d ( x , y )$ for all $x , y \in G$.
+Let $X$ be \tb{uniformly distributed} over $G$. Then for any $t >0$
+$$
+\P (| f ( X )- \E f ( X )| \geq t ) \leq 2 \exp \left(-\frac{2 t ^{2} }{ \sum c _{ k }^{2}}\right)
+$$
+\item Let $A$ be a subset of $G$ with $\frac{| A |}{| G |}=\alpha, 0<\alpha<1$. Then for any $t \geq t_{0}=\left(\frac{1}{2}\left(\log \frac{1}{\alpha}\right) \sum c_{k}^{2}\right)^{1 / 2}$
+$$
+\frac{\left| A _{ t }\right|}{| G |} \geq 1-\exp \left(-\frac{2\left( t - t _{0}\right)^{2} }{ \sum c _{ k }^{2}}\right)
+$$
+and so for any $t>0$ and $\gamma>0$
+$$
+\frac{\left|A_{t}\right|}{|G|} \geq 1-\left(\frac{1}{\alpha}\right)^{\gamma^{2}} \exp \left(-\frac{2\left(\frac{\gamma}{1+\gamma}\right)^{2} t^{2}}{ \sum c_{k}^{2}}\right)
+$$
+\end{enumerate}
+\end{thma}
+
+\subsubsection{Isoperimetric Inequalities: Product Graph and Permutation Graph}
+\paragraph{Median of $Q_n$}
+\begin{defa}{\bfs{Hamming Ball}}
+A Hamming ball centred at a vertex $v$ of the hypercube $Q _{ n }$ consists of all vertices at distance less than $d$ from $v$ for some $d$, together with \tb{some} (seem not need all) vertices at distance $d$.
+\end{defa}
+
+\begin{lema}{\bfs{ See \cite{harper1966optimal}}}\label{lema:haper}
+Let $A$ and $C$ be two sets of vertices of $Q _{ n }$ with distance $\rho$ between them. There exist Hamming balls $B_{0}$ centred at the all-zero vector and $B _{1}$ centred at the all-one vector such that $\left| B _{0}\right|=| A |,\left| B _{1}\right|=| C |$ and the
+distance between $B_{0}$ and $B_{1}$ is at least $\rho .$
+\end{lema}
+From \cref{lema:haper}, we know
+\begin{lema}{\bfs{See \cite{amir1980unconditional}}}\label{lema:sc}
+Let $A$ be a set of $2^{ n -1}$ vertices in the cube $Q _{ n }$. Then for any $t \geq 0$ $$ \frac{\left|A_{t}\right| }{ 2^{n}} \geq 1-\exp \left(-\frac{2 t^{2}}{ n}\right)
+$$
+\end{lema}
+\begin{rema}
+This result is `cleaner' than the corresponding case of \cref{coracube}. We now
+see that the graphs $Q _{ n }$ form a normal L\'{e}vy family with parameters $c _{1}=1, c _{2}=2$. 
+\end{rema}
+In the last subsection we obtained our isoperimetric inequality  \cref{coracube} for
+the cube from a result on concentration of measure. We may also reverse this
+process.
+\begin{cora}\label{cora:median}
+ Let $f$ be a function defined on the vertex set $V$ of the $n$-cube
+$Q _{ n }$ such that if $x$ and $y$ are adjacent then $| f ( x )- f ( y )| \leq 1 .$ Let the random
+variable $X$ be \tb{uniformly distributed} over $V$. Let $L$ be a \tb{median} of $f ;$ that is, $\P ( f ( X )\leq L ) \geq \frac{1}{2}$ and $\P ( f ( X ) \geq L ) \geq \frac{1}{2}$. Then for any $t >0$,
+$$
+\P (| f ( X )- L | \geq t) \leq 2 \exp \left(-\frac{2 t ^{2} }{ n} \right)
+$$
+\end{cora} 
+\begin{rema}{\bfs{\cref{thmbasicdiff} vs. \cref{cora:median}}}
+\cref{thmbasicdiff} is deviation from the mean $\E f(X)$ while here  \cref{cora:median} is deviation from the median $L$. 
+\end{rema}
+\begin{proof}
+Let $A =\{ x \in V : f ( x ) \leq L \}$ and $B =\{ x \in V : f ( x ) \geq L \}$. Then
+$$
+\begin{aligned}
+\P (| f ( X )- L | \leq t) &\geq \P \left( X \in A _{ t } \cap B _{ t }\right) \\
+&=-1+ \P \left( X \in A _{ t }\right)+ \P \left( X \in B _{ t }\right)\\
+& \geq 1-2 \exp \left(-\frac{2 t ^{2} }{ n} \right)
+\end{aligned}
+$$
+by proposition \cref{lema:sc} since $A$ and $B$ must contain at least $2^{n-1}$ nodes under uniformly distribution.
+\end{proof}
+\paragraph{Extension of $Q_n$ to General Product Graph}
+\begin{defa}{\bfs{Product Graph}}
+Let $H_{ k }$ be a graph with vertex set $V _{ k }$, for $k =1, \ldots, n$. The cartesian product $G =\prod H _{ k }$ has vertex set $\prod V _{ k }$, and two vertices $x =\left( x _{1}, \ldots, x _{ n }\right)$ and
+$y =\left( y _{1}, \ldots, y _{ n }\right)$ are adjacent if and only if they \tb{differ} in exactly one coordinate \tb{and} if this is the $k$-th coordinate then $x_{k}$ and $y_{k}$ are \tb{adjacent} in $H_{k} .$ Note that $G$ has diameter the sum of the diameters of the graphs $H _{ k }$.
+\end{defa}
+\begin{rema}{\bfs{example of product of two graph}}
+Let $G=(V, E)$ and $H=(W, F)$ be graphs. Then $G \times H$ is the graph with vertex set $V \times W$ and edge set
+$$
+\begin{array}{l}
+((v, w),(\hat{v}, w)) \text { where }(v, \hat{v}) \in E \text { and } \\
+((v, w),(v, \hat{w})) \text { where }(w, \hat{w}) \in F
+\end{array}
+$$
+\end{rema}
+We extend \cref{coracube} to general product graph:
+\begin{cora}{\bfs{Product Graph $G$}}\label{coraeee}
+ For $k =1, \ldots, n$ let $H _{ k }$ be a graph with diameter $D _{ k }$, and let the graph $G _{ n }$ with vertex set $V$ be the cartesian product $\prod H _{ k }$. Let $A \subseteq V$
+with $\frac{|A|}{|V|}=\alpha, 0<\alpha<1 .$ Then for any $t \geq t_{0}=\left(\frac{1}{2}\left(\log \frac{1}{\alpha}\right) \sum c_{k}^{2}\right)^{1 / 2}$,
+$$
+\frac{\left|A_{t}\right|}{|V|} \geq 1-\exp \left(-\frac{2\left(t-t_{0}\right)^{2}}{\sum c_{k}^{2}}\right)
+$$
+Thus for any $t>0$ and any $\gamma>0$,
+\begin{align}
+    \frac{\left|A_{t}\right|}{|V|} \geq 1-\left(\frac{1}{\alpha}\right)^{\gamma^{2}} \exp \left(-\frac{2\left(\frac{\gamma}{1+\gamma}\right)^{2} t^{2}}{\sum c_{k}^{2}}\right)\label{eqafadsfa}
+\end{align}
+\end{cora}
+\begin{rema}
+\cref{coraeee} show that both the  product graph  forms normal L\'{e}vy families with parameter $c_{2}$ arbitrarily close to $2$. In fact for the $Q_{n}$ we can do slightly better (see the next subsection).
+\end{rema}
+
+\subsubsection{Isoperimetric Inequalities: Binomial Distribution}\label{sssec:bio}
+The vertex set $V =\{0,1\}^{ n }$ in the hypercube $Q_{n}$. Let $0<p<1$ and let the random variable $X$ take values in $V$, with $P ( X = x )= p ^{ s }(1- p )^{ n - s }$ where $s = \sum x _{ k }$. We study the case when $p$ (or $1-p$) is very small, which is analogy to \cref{eq44b1,eq44b2} (or \cref{eq416b1,eq416b2})
+\begin{cora}\label{corabiodis}
+ Let $f$ be a monotonic (here $\{0,1\}^{ n }$ are ordered numerically) function defined on the vertex set $V$ of hypercube $Q _{ n }$ such that if $x$ and $y$ are adjacent then $| f ( x )- f ( y )| \leq 1$. Let the
+random variable $X$ be distributed over $V$ as above. Then, for any $0 \leq \epsilon \leq 1$,
+\begin{align}
+  P ( f ( X )- \E f ( X ) \geq \epsilon n p) &\leq \exp \left(-\frac{1}{3} \epsilon^{2} np \right) \\
+P ( f ( X )- \E f ( X ) \leq-\epsilon n p ) &\leq \exp \left(-\frac{1}{2} \epsilon^{2} np \right) 
+\end{align}
+
+\end{cora}
+Let $\calF_{ k }$ be the  $\sigma$-field generated by the natural partition $\calP_k$ in \cref{examcube} , and let $Y_{k}$ be $\E[f(X) \mid \calF_k ]$. We next prove
+$$
+- p \leq Y _{ k }- Y _{ k -1} \leq 1- p.
+$$
+Simliar to what we have done in the proof of \cref{thmbasicdiff}
+\begin{align*}
+    &\E \left[ f (Z^n) \mid [Z _{1}, \ldots, Z _{ k -1}]=[z _{1}, \ldots, z_{ k -1}]\right]\\
+    & =\frac{\sum_{x(i)\in B} p^{a_i}(1-p)^{b_i}p^c(1-p)^{k-c}f(x(i))+\sum_{x(i)\in A} p^{a_i}(1-p)^{b_i}p^{c-1}(1-p)^{k-c+1}f(\varphi(x(i)))}{\sum_{x(i)\in B} p^{a_i}(1-p)^{b_i}p^c(1-p)^{k-c}+\sum_{x(i)\in A} p^{a_i}(1-p)^{b_i}p^{c-1}(1-p)^{k-c+1}} \\
+    & = \frac{\sum_{x(i)\in A} p^{a_i}(1-p)^{b_i}\left(pf(x(i))+(1-p)f(\varphi(x(i)))\right)}{\sum_{x(i)\in A} p^{a_i}(1-p)^{b_i}}
+\end{align*}
+\begin{align*}
+    &\E \left[ f (Z^n) \mid [Z _{1}, \ldots, Z _{ k -1}]=[z _{1}, \ldots, z_{ k -1}], z_{k}=1\right]\\
+    & =\frac{\sum_{x(i)\in B} p^{a_i}(1-p)^{b_i}p^c(1-p)^{k-c}f(x(i))}{\sum_{x(i)\in B} p^c(1-p)^{k-c}p^{a_i}(1-p)^{b_i}} \\
+    & = \frac{\sum_{x(i)\in B} p^{a_i}(1-p)^{b_i}f(x(i))}{\sum_{x(i)\in B} p^{a_i}(1-p)^{b_i}}\\
+     & = \frac{\sum_{x(i)\in A} p^{a_i}(1-p)^{b_i}f(x(i))}{\sum_{x(i)\in A} p^{a_i}(1-p)^{b_i}}\\
+\end{align*}
+\begin{align*}
+    &\E \left[ f (Z^n) \mid [Z _{1}, \ldots, Z _{ k -1}]=[z _{1}, \ldots, z_{ k -1}], z_{k}=0\right]\\
+    & =\frac{\sum_{x(i)\in A} p^{a_i}(1-p)^{b_i}p^{c-1}(1-p)^{k-c+1}f(\varphi(x(i)))}{\sum_{x(i)\in A} p^{c-1}(1-p)^{k-c+1}p^{a_i}(1-p)^{b_i}} \\
+    & = \frac{\sum_{x(i)\in A} p^{a_i}(1-p)^{b_i}f(\varphi(x(i)))}{\sum_{x(i)\in A} p^{a_i}(1-p)^{b_i}}
+\end{align*}
+where $A=\{x:y^n = m(x) \text{ and } y_i=z_i \text{ for all $i=1,...,k-1, y_k= 0$}\}$, $B=\{x:y^n = m(x) \text{ and } y_i=z_i \text{ for all $i=1,...,k-1, y_k= 1$}\}$, and $a_i$, $b_i$ are just the number of $1$ or $0$ in the left $n-k$ coordinates (so $a_i+b_i=n-k$).  $c$ is the number of $1$ in $z_i$ for $i=1,...,k-1$
+
+We finally use \cref{coraafaa}.
+
+\begin{cora}
+For the vertex set $V$ of hypercube $Q _{ n }$, Let the random variable $X$ be distributed over $V$ as above. Let $A \subseteq V$ be decreasing (that is, $x \in A$ and $y \leq x$ implies $y \in A$ ) with $\P ( X \in A )=\alpha, 0<\alpha<1$.
+Let $t_{0}=\left(2 \log \left(\frac{1}{\alpha}\right) n p \right)^{1 / 2}$. Then for $t _{0} \leq t \leq t _{0}+ np$
+$$
+\P \left( X \in A _{ t }\right) \geq 1-\exp \left(-\frac{\frac{1}{3}\left( t - t _{0}\right)^{2}}{ np} \right)
+$$
+\end{cora}
+\begin{proof}
+Take $f ( x )= d ( x , A )$. Note that $d ( x , A ) \leq \sum x _{ i }$ since the
+all-zero vector is in A. Thus $t_{1}=\E f(X)$ satisfies $t_{1} \leq np$. By \cref{corabiodis},
+$$
+\alpha= \P( f ( X )=0)= \P ( f ( X ) \leq t _{1}- t _{1}) \leq \exp \left(-\frac{1}{2} t _{1}^{2} / np \right)
+$$
+and it follows that $t_{1} \leq t_{0}$. But now by \cref{corabiodis} again, for $t_{0} \leq t \leq t_{0}+ np$,
+$$
+\begin{aligned}
+1-\P(X \in A_t)&=P(f(X)>t) \\
+& \leq \P(f(X)>t_{1}+(t-t_{0})) \\
+ & \leq \exp \left(-\frac{1}{3}\left(t-t_{0}\right)^{2} / n p\right)
+\end{aligned}
+$$
+\end{proof}
+
+\subsection{Random Graphs II}\label{ssec:graphexamII}
+
+\subsection{Some Other Examples}\label{ssec:someexam}
+\subsubsection{$U$-statistics}
+Let $g: \mathbb{R}^{2} \rightarrow \mathbb{R}$ be a symmetric function of its arguments. Given an i.i.d. sequence $X_{k}, k \geq 1$, of random variables, the quantity
+$$
+U:=\frac{1}{\left(\begin{array}{l}
+n \\
+2
+\end{array}\right)} \sum_{j<k} g\left(X_{j}, X_{k}\right)
+$$
+is known as a pairwise $U$-statistic. For instance, if $g(s, t)=|s-t|$, then $U$ is an unbiased estimator of the mean absolute pairwise deviation $\mathbb{E}\left[\left|X_{1}-X_{2}\right|\right] .$ Note that, while $U$ is not a sum of independent random variables, the dependence is relatively weak, and this fact can be revealed by a martingale analysis. If $g$ is bounded (say $\left.\|g\|_{\infty} \leq b\right)$, then \cref{coradiff} can be used to establish the concentration of $U$ around its mean. Viewing $U$ as a function $f(x)=f\left(x_{1}, \ldots, x_{n}\right)$, for any given coordinate $k$, we have
+
+\begin{align*}
+\left|f\left(x_{1}, \ldots, x_{n}\right)-f\left(x_{1}, \ldots, x_{k-1}, x_{k}^{\prime}, x_{k+1}, \ldots, x_{n}\right)\right| & \leq \frac{1}{\left(\begin{array}{l}
+n \\
+2
+\end{array}\right)} \sum_{j \neq k}\left|g\left(x_{j}, x_{k}\right)-g\left(x_{j}, x_{k}^{\prime}\right)\right| \\
+& \leq \frac{(n-1)(2 b)}{\left(\begin{array}{l}
+n \\
+2
+\end{array}\right)}=\frac{4 b}{n}
+\end{align*}
+
+so that the bounded differences property holds with parameter $L_{k}=\frac{4 b}{n}$ in each coordinate. Thus, we conclude that
+$$
+\mathbb{P}[|U-\mathbb{E}[U]| \geq t] \leq 2 e^{-\frac{n^{2}}{8 b^{2}}}
+$$
+This tail inequality implies that $U$ is a consistent estimate of $\mathbb{E}[U]$, and also yields finite sample bounds on its quality as an estimator. Similar techniques can be used to obtain tail bounds on $U$ -statistics of higher order, involving sums over $k$ -tuples of variables.
+
+\subsubsection{Rademacher Complexity}
+Let $\left\{\varepsilon_{k}\right\}_{k=1}^{n}$ be an \gls{iid} sequence of Rademacher variables (i.e., taking the values $\{-1,+1\}$ equiprobably). Given a collection of vectors $\mathcal{A} \subset \mathbb{R}^{n}$, define the random variable
+$$
+Z\coloneqq\sup _{a \in \mathcal{A}}\left[\sum_{k=1}^{n} a_{k} \varepsilon_{k}\right]=\sup _{a \in \mathcal{A}}[\langle a, \varepsilon\rangle]
+$$
+The random variable $Z$ measures the size of $\mathcal{A}$ in a certain sense, and its expectation $$\mathcal{R}(\mathcal{A})\coloneqq\mathbb{E}[Z(\mathcal{A})]$$ is known as the \tb{Rademacher complexity} of the set $\mathcal{A}$.
+
+Let us now show how \cref{coradiff} can be used to establish that $Z(\mathcal{A})$ is sub-Gaussian (because of sub-Gaussian equivalence \cref{thmdef_equ_gau}). Viewing $Z(\mathcal{A})$ as a function $f\left(\varepsilon_{1}, \ldots, \varepsilon_{n}\right)$, we need to bound the maximum
+change when coordinate $k$ is changed. Given two Rademacher vectors $\varepsilon, \varepsilon^{\prime} \in\{-1,+1\}^{n}$ which only different at $k$-th coordinate. Since $f\left(\varepsilon'\right) \geq\left\langle a, \varepsilon'\right\rangle$ for any $a \in \mathcal{A}$, we have
+$$
+\langle a, \varepsilon\rangle-f\left(\varepsilon'\right) \leq\left\langle a, \varepsilon-\varepsilon'\right\rangle=a_{k}\left(\varepsilon_{k}-\varepsilon_{k}^{\prime}\right) \leq 2\left|a_{k}\right|
+$$
+Taking the supremum over $\mathcal{A}$ on both sides, we obtain the inequality
+$$
+f(\varepsilon)-f\left(\varepsilon'\right) \leq 2 \sup_{a\in\mathcal{A}} \left|a_{k}\right|
+$$
+Since the same argument applies with the roles of $\varepsilon$ and $\varepsilon'$ reversed, we conclude that $f$ satisfies the bounded difference inequality in coordinate $k$ with parameter $2 \sup _{a \in \mathcal{A}}\left|a_{k}\right|$ Consequently, \cref{coradiff} implies that the random variable $Z(\mathcal{A})$ is sub-Gaussian with parameter at most $2 \sqrt{\sum_{k=1}^{n} \sup _{a \in \mathcal{A}} a_{k}^{2}}$. This sub-Gaussian parameter can be reduced to the (potentially much) smaller quantity $\sqrt{\sup _{a \in \mathcal{A}} \sum_{k=1}^{n} a_{k}^{2}}$ using alternative techniques; in particular, see \cite[Example 3.5]{wainwright2019high} for further details.
+
+\subsubsection{Bin Packing}
+Given an $n$-vector $x^n=(x_{1}, \ldots, x_{n})$ where each $x_{i} \in[0,1]$, let $B(x^n)$ be the least number of unit size bins needed to store $n$ items with these sizes. Let
+$X _{1}, \ldots, X _{ n }$ be independent random variables each taking values in $[0,1] .$ 
+\begin{lema}
+For any $t>0$
+$$
+\P(| B(X^n) - \E B(X^n)| \geq t ) \leq 2 \exp \left(-\frac{2 t ^{2}}{ n} \right)
+$$
+\end{lema} 
+\begin{proof}
+Let $x^n, x'^n\in [0,1]^{ n }$. We have $\left| B (x^n)- B \left(x'^n\right)\right| \leq 1$ whenever $x^n$ and $x'^n$ differ in only one coordinate. We can then apply \cref{coradiff}.
+\end{proof}
+
+\begin{rema}{\bfs{how to get $\E[B_{m}]$}}
+Now let us use $B _{ n }$ in place of $B(X^n)$ above. From the subadditive
+inequality
+\begin{align*}
+    \E[B_{m+n}] \leq \E[B_{m}]+\E[B_{n}]
+\end{align*}
+it follows that $\frac{1}{ n } \E [ B _{ n }] \to \beta$ as $n \rightarrow \infty$, where $\beta=\inf \frac{1}{ n } \E \left[ B _{n}\right](0 \leq \beta \leq 1)$.
+\end{rema}
+
+\begin{lema}
+Let $\epsilon>0$. Then
+$$
+\P (\left|\frac{1}{ n } B _{ n }-\beta\right|>\epsilon)=O\left(\exp \left(-(2-o(1)) \epsilon^{2} n \right)\right) .
+$$
+\end{lema} 
+\subsubsection{Knapack Problem}
+Let $\bb$ be a fixed non-negative $m$-vector. Consider a list $x_{1}=( c _{1}, {a}_1)$, $\ldots, x_{n}=(c_{n}, {a}_n)$ of $(1+m)$ -vectors, where each scalar $c_{k} \in[0,1]$ and each $m$-vector ${a}_k \geq \bm{0}$. Let $K (x_1,...,x_n)$ be the value of the corresponding `multi-knapsack' problem
+$$
+\max \sum c_{k} z_{k}
+$$
+subject to
+\begin{align*}
+   \sum {a}_{k} z_{k} &\leq \bb \\
+z_{k}&=0 \text { or } 1 \quad(k=1, \ldots, n) 
+\end{align*}
+Now let ${X}_{1}, \ldots, {X}_{n}$ be independent random vectors, where each ${X}_{k}$ is a $(1+m)$ -vector $( C_{ k }, {A}_{k})$, with $C _{ k } \in[0,1]$ and the $m$ -vector ${}_{k}A^n \geq \bm{0}$. For $K(X_1,...,X_n)$, Note that if the lists $x^n, x'^n$ differ in
+only one coordinate vector $(c_{k}, {a}_{k})$ then $\left|K(x^n)-K(x'^n)\right| \leq 1$. Applying \cref{coradiff}, we get 
+\begin{lema}
+$$
+\P(| K - \E K| \geq t ) \leq 2 \exp \left(-\frac{2 t ^{2} }{ n} \right)
+$$
+\end{lema} 
+
+\subsubsection{Travelling Saleman Problem}
+Given $n$ $2$-dim points $x_1,...,x_n$ in the unit square $[0,1]^{2}$ let $T\left(x_1,...,x_n\right)$ be the shortest length of a tour through them. Now let $X_{1}, \ldots, X_{n}$ be independent random variables, each uniformly distributed on the unit square. We are interested here in the concentration of $T$.
+
+Given a fixed point $y$ in the unit square let $Y$ be the random shortest
+distance from $y$ to one of the points $_{ k +1}, \ldots, X_{ n } .$ Then, as observed \cite{steele1981complete}, for some constant $c_{1}>0$
+$$
+\P (Y>t) \leq\left(1-c_{1} t^{2}\right)^{n-k-1} \quad(\text { for } t>0)
+$$
+Hence $\E ( Y ) \leq c _{2}( n - k )^{-1 / 2}$ for some constant $c _{2}>0$. 
+
+We then have
+\begin{align*}
+   & \left|\E\left[ T \mid\left[X_{1}, \ldots, X_{ k }\right]=\left[X_{1}, \ldots, x_{k}\right]\right]- \E \left[ T \mid\left[X_{1}, \ldots, X_{ k -1}\right]=\left[X_{1}, \ldots, x_{ k -1}\right], X_{ k }=x_{ k }^{\prime}\right]\right|\\
+&\leq 2 c_{2}(n-k)^{-1 / 2}
+\end{align*}
+So by \cref{thmadiff} we find that for $t>0$
+$$\P(|T-\E(T)| \geq t) \leq \exp \left(-t^{2} / c\log n\right)$$
+for a suitable constant $c>0$. 
+\begin{rema}
+This result is of no use if we are interested in small $t$, say $t=o\left((\log n)^{1 / 2}\right).$ For such small deviations direct application of the bounded difference method fails.
+\end{rema}
+
+\subsubsection{Minimum Spanning Trees}
+In the complete graph $K _{ n }$ with independent random edge lengths each uniformly distributed on $[0,1]$, the expected length of a minimum spanning tree tends to $\zeta(3) \approx 1.2$ as $n \to \infty$. 
+
+In general, let $G$ be a fixed graph, with say $n$ edges.
+Given a list $x^n=\left(x_{1}, \ldots, x_{n}\right)$ of these edges, let $G_{j}(x^n)$ be the subgraph of $G$ with edges $x_{1}, \ldots, x_{j}$, and let $\kappa_{j}(x^n)$ be the number of components of $G_{j}(x^n) .$ Now suppose that the edges of $G$ have independent random edge lengths each uniformly
+distributed on $[0,1] .$ Let $X^n=\left(X_{1}, \ldots, X_{n}\right)$ be the list of edges rearranged in increasing order. Thus all $n!$ possible orders are equally likely. Knowing how fast
+$\kappa_{ j }( X^n )$ usually decreases with $j$ tells us how much of the minimum spanning tree we can expect to build with short edges.
+
+It turns out then that we are interested in the random variable $Z = Z (X^n)$, where $Z (x^n)=\sum\left\{\kappa_{ j }( x ): j =1, \ldots, m \right\}$ and $m \leq n$. Here we focus on the
+concentration of $Z$. We see that
+$$
+\begin{array}{l}
+\Big| \E[\kappa_{ j }(X^n) \mid\left[ X _{1}, \ldots, X _{ k }\right]=\left[ e _{1}, \ldots, e _{ k }\right]] \\
+\quad- \E[\kappa_{ j }(X^n) \mid\left[ X _{1}, \ldots, X _{ k -1}\right]=\left[ e _{1}, \ldots, e _{ k -1}\right], X _{ k }= e _{ k }^{\prime}] \Big|\leq 1
+\end{array}
+$$
+It now follows that
+$$
+\begin{array}{l}
+\Big| \E \left( Z \mid\left[ X _{1}, \ldots, X _{ k -1}\right]=\left[ e _{1}, \ldots, e _{ k }\right]\right] \\
+- \E \left( Z \mid\left[ X _{1}, \ldots, X _{ k -1}\right]=\left[ e _{1}, \ldots, e _{ k -1}\right], X _{ k }=e_{ k }^{\prime}\right] \Big| \leq m - k +1
+\end{array}
+$$
+Hence by \cref{thmadiff}, for any $t>0$
+$$
+P (| Z - \E Z | \geq t) \leq 2 \exp \left(-\frac{12 t ^{2} }{ m ( m +1)(2 m +1)}\right)
+$$
+
+\subsubsection{ Second Eigenvalue of Random Regular Graphs}
+Let G be an $r$-regular graph, possibly with loops or multiple edges.
+The adjacency matrix (with loops counted twice) has $r$ as the eigenvalue with  largest absolute value. Let $\lambda_{2}(G)$ be the next largest eigenvalue in absolute value.
+If $\left|\lambda_{2}(G)\right|$ is much less than $r$ then G has useful 'expansion' properties and the natural random walk on the vertices is `rapidly mixing' \cite{friedman1989second}.
+
+Consider random $2d$-regular graphs constructed as follows on the
+vertex set $V =\{1, \ldots, n \} .$ Let $A$ be the set of all permutations $\sigma$ on $V$. Pick
+$\sigma_{1}, \ldots, \sigma_{ d }$ independently at random from A, and let the graph G have the $dn$ edges $\left\{v, \sigma_{k} v\right\}$ for $k=1, \ldots, d$ and $v \epsilon V$. Let $Y$ be the corresponding random variable $\left|\lambda_{2}(G)\right| .$ We are interested in large $n$ and moderate $d$. \cite{friedman1989second} show essentially that $\E [ Y ] \leq( c + o (1)) d ^{3 / 4}$ as $n \to \infty ;$ and for any $t >0$
+$$
+\P (| Y - \E Y | \geq t) \leq 2 \exp \left(-\frac{ t ^{2} }{ 8 d} \right)
+$$
+This result may be proved as follows. Standard
+manipulations show that
+$$
+2 d -\lambda_{2}=\inf \sum_{ k } \sum_{ v }\left(f(\sigma_{ k } v)- f ( v )\right)^{2}
+$$
+where the infimum is over all real-valued functions $f$ on $V$ satisfying $\sum _{ v } f ( v )=0$ and $\Sigma_{v} f(v)^{2}=1 .$ But if $\Sigma_{v} f(v)^{2}=1$ the triangle inequality gives
+$$
+\sum_{ v }\left( f (\sigma_{ k } v)- f ( v )\right)^{2} \leq 4
+$$
+Hence we may apply \cref{coradiff} with each $c_{ k }=4$.
+
+\section{Lipschitz functions of Gaussian variables}
+We conclude this chapter with a classical result on the concentration properties of Lipschitz functions of Gaussian variables. These functions exhibit a particularly attractive form of dimension-free concentration. Let us say that a function $f: \mathbb{R}^{n} \rightarrow \mathbb{R}$ is $L$ -Lipschitz with respect to the Euclidean $\operatorname{norm}\|\cdot\|_{2}$ if
+$$
+|f(x)-f(y)| \leq L\|x-y\|_{2} \quad \text { for all } x, y \in \mathbb{R}^{n}
+$$
+The following result guarantees that any such function is sub-Gaussian with parameter at most $L$ :
+
+Theorem $2.26$ Let $\left(X_{1}, \ldots, X_{n}\right)$ be a vector of i.i.d. standard Gaussian variables, and
+let $f: \mathbb{R}^{n} \rightarrow \mathbb{R}$ be L-Lipschitz with respect to the Euclidean norm. Then the variable $f(X)-\mathbb{E}[f(X)]$ is sub-Gaussian with parameter at most $L$, and hence
+$$
+\mathbb{P}[f(X)-\mathbb{E}[f(X)] \mid \geq t] \leq 2 e^{-\frac{t^{2}}{2 L^{2}}} \quad \text { for all } t \geq 0
+$$
+Note that this result is truly remarkable: it guarantees that any $L$ -Lipschitz function of a standard Gaussian random vector, regardless of the dimension, exhibits concentration like a scalar Gaussian variable with variance $L^{2}$.
+
+Proof With the aim of keeping the proof as simple as possible, let us prove a version of the concentration bound (2.39) with a weaker constant in the exponent. (See the bibliographic notes for references to proofs of the sharpest results.) We also prove the result for a function that is both Lipschitz and differentiable; since any Lipschitz function is differentiable almost everywhere, ${ }^{2}$ it is then straightforward to extend this result to the general setting. For a differentiable function, the Lipschitz property guarantees that $\|\nabla f(x)\|_{2} \leq L$ for all $x \in \mathbb{R}^{n} .$ In order to prove this version of the theorem, we begin by stating an auxiliary technical lemma:
+\bibliographystyle{IEEEtran}
+\bibliography{IEEEabrv,StringDefinitions,adv_dnn}
+\end{document}

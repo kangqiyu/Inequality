@@ -1,0 +1,367 @@
+% \documentclass[a4paper,10pt]{article} % or whatever
+% \documentclass[letterpaper,10pt]{article} % or whatever
+\documentclass{article}
+
+% if you need to pass options to natbib, use, e.g.:
+     \PassOptionsToPackage{numbers, compress}{natbib}
+% before loading neurips_2020
+
+% ready for submission
+% \usepackage{neurips_2021}
+
+% to compile a preprint version, e.g., for submission to arXiv, add add the
+% [preprint] option:
+% \usepackage[final]{neurips_2021}
+
+% to compile a camera-ready version, add the [final] option, e.g.:
+
+% \usepackage[final]{neurips_2020}
+\usepackage[preprint]{neurips_2021}
+% \usepackage[preprint]{neurips_2021}
+
+
+% to compile a camera-ready version, add the [final] option, e.g.:
+
+
+% \newtheorem*{notice}{Notice}
+
+% \theoremstyle{definition}
+% \newtheorem{dfn}[equation]{Definition}
+% \newtheorem{bigrem}[equation]{Remark}
+% \newtheorem{num}[equation]{} % a bit strange, but I do use it!
+% \newtheorem{exmp}[equation]{Example}
+
+\newcommand{\bfs}[1]{\textbf{({#1})}}
+\newcommand{\ignore}[1]{}
+% to avoid loading the natbib package, add option nonatbib:
+\usepackage{dsfont}
+\input{preamble}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows}
+%  \usepackage{subfigure} 
+\pdfminorversion=7
+
+%\floatname{algorithm}{Procedure}
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage{microtype}      % microtypography
+
+%\tikzstyle{input} = [rectangle, rounded corners, minimum width=1cm, minimum height=1cm,text centered, draw=black]
+%\tikzstyle{process} = [rectangle, minimum width=3cm, minimum height=1cm, text centered, draw=black]
+%\tikzstyle{output} = [rectangle, rounded corners, minimum width=1cm, minimum height=1cm,text centered, draw=black]
+\title{Correlated Probability Inequality}
+% \author{%
+%   Qiyu~Kang, and Wee~Peng~Tay
+%  \thanks{First two authors contributed equally to this work.} 
+%   \\
+%   School of Electrical and Electronic Engineering\\
+%   Nanyang Technological University\\
+%   Singapore \\
+% %   \texttt{songy@ntu.edu.sg, kang0080@e.ntu.edu.sg, wptay@ntu.edu.sg, qding001@e.ntu.edu.sg} \\
+%   % examples of more authors
+%   % \And
+%   % Coauthor \\
+%   % Affiliation \\
+%   % Address \\
+%   % \texttt{email} \\
+% }
+
+
+
+\begin{document}
+
+\maketitle
+
+% \begin{abstract}
+
+% Deep neural networks (DNNs) are well-known to be vulnerable to adversarial attacks, where malicious human-imperceptible perturbations are included in the input to the deep network to fool it into making a wrong classification. Recent studies have demonstrated that neural Ordinary Differential Equations (ODEs) are intrinsically more robust against adversarial attacks compared to vanilla DNNs. In this work, we propose a stable neural ODE with Lyapunov-stable equilibrium points for defending against adversarial attacks (SODEF). By ensuring that the equilibrium points of the ODE solution used as part of SODEF is Lyapunov-stable, the ODE solution for an input with a small perturbation converges to the same solution as the unperturbed input. We provide theoretical results that give insights into the stability of SODEF as well as the choice of regularizers to ensure its stability. Our analysis suggests that our proposed regularizers force the extracted feature points to be within a neighborhood of the Lyapunov-stable equilibrium points of the ODE. SODEF is compatible with many defense methods and can be applied to any neural network's final regressor layer to enhance its stability against adversarial attacks. 
+% \end{abstract}
+
+\section{Binomial Random Subsets}
+We study correlation inequality since binomial random subsets are correlated to each other if they are not disjoint.
+\subsection{FKG inequality}
+We are concerned here with the probability space $\Omega$ of $n$ independent random \tb{binary} bits $b_{1}, \ldots, b_{n} .$ It doesn't matter whether they are identically distributed. Let $p_{i}=\P\left(b_{i}=1\right)$. 
+\begin{defa}{\bfs{Partial Order}}\label{defa:po}
+We consider the boolean lattice $B$ on these bits: $b \geq b^{\prime}$ if for all $i, b_{i} \geq b_{i}^{\prime} .$
+\end{defa}
+
+ So, $\Omega$ is the distribution on $B$ for which $\P(b)=\left(\prod_{\left\{i: b_{i}=1\right\}} p_{i}\right)\left(\prod_{\left\{i: b_{i}=0\right\}}\left(1-p_{i}\right)\right)$.
+ 
+\begin{defa}{\bfs{Increasing (Decreasing) Function and Event}}
+A real-valued function $f$ on $\Omega$ is \tb{increasing} if $b \geq b^{\prime} \Rightarrow f(b) \geq f\left(b^{\prime}\right) .$ It is decreasing if $-f$ is increasing. Likewise, an event $A$ on $\Omega$ is \tb{increasing} if its \tb{indicator function is increasing}, and decreasing if its indicator function is decreasing.
+\end{defa} 
+\begin{rema}{\bfs{Alternative Form}}
+Consider a binomial random subset which is defined by including the element $i$ with probability $p_{i}$ (i.e. if $b_i$ is $1$), independently of all other elements, $i=1, \ldots, N$. Denote $[n]$ as the set $\{1,\ldots,n\}$. We say that a function $f: 2^{[n]} \rightarrow R$ is \tb{increasing} if for $A \subseteq B\subseteq [n], f(A) \leq f(B)$, and decreasing if $f(A) \geq f(B)$. That just means the partial order defined in \cref{defa:po} is equivalent to the set inclusion partial order.  
+
+Alternatively, a event (a family of subsets) $\calQ \subseteq 2^{[n]}$ is called increasing if $A \subseteq B$ and $A \in \calQ$ imply that $B \in \calQ .$ A family of subsets is decreasing if its complement in $2^{[n]}$ is increasing, or, equivalently, if the family of the complements in $\Gamma$ is increasing. A family which is either increasing or decreasing is called monotone. A family $\calQ$ is convex if $A \subseteq B \subseteq C$ and $A, C \in \calQ$ imply $B \in \calQ .$
+
+Please compare it with the following \blue{[WRONG]} statements:
+
+``A event on $2^{[n]}$ is \tb{increasing} if it is a increasing family of subsets of $[n]$: $\{A_1,\ldots, A_n\}$ such that $\varnothing\subseteq A_1\ldots\subseteq A_n$.''
+
+
+\end{rema}
+\begin{thma}{\bfs{FKG Inequality}}
+If f and $g$ are increasing functions on $\Omega$ then
+$$
+\E(f g) \geq \E(f) \E(g)
+$$
+\end{thma}
+
+
+
+\begin{rema}
+Now let us reinterpret the theorem. Suppose $g$ is the indicator function of some increasing event. Then
+\begin{align*}
+    \E(f g)&=\P(g=1) \E(f\mid g=1)+\P(g=0) \E(0 \mid g=0)\\
+    &=\P(g=1) \E(f \mid g=1)\\
+    &=\E(g) \E(f \mid g=1)
+\end{align*}
+So
+$$
+\E(f \mid g=1)=\frac{\E(f g)}{\E(g)} \geq \frac{\E(f) \E(g)}{\E(g)}=\E(f)
+$$
+\tb{The interpretation is that conditioning on an increasing event, only increases the expectation of any increasing function.} 
+\end{rema}
+
+\begin{cora}\label{corafkg}\quad 
+
+\begin{enumerate}
+    \item If $A$ and $B$ are increasing events on $\Omega$ then $\P(A \cap B) \geq \P(A) \P(B)$.
+    \item If $f$ is an increasing function and $g$ is a decreasing function, then $\E(f g) \leq \E(f) \E(g)$.
+    \item If $A$ is an increasing event and $B$ is a decreasing event, then $\P(A \cap B) \leq \P(A) \P(B)$.
+\end{enumerate}
+\end{cora}
+\begin{rema}{\bfs{Alternative Form }}
+Consider a binomial random subset of $[n]$, denoted as $\Gamma_{p_{1}, \ldots, p_{N}}$, which is defined by including the element $i$ with probability $p_{i}$, independently of all other elements, $i=1, \ldots, N$. If $Q _{1}$ and $Q _{2}$ are two increasing or two decreasing families of subsets of $\Gamma$, then
+$$
+\P \left(\Gamma_{p_{1}, \ldots, p_{N}} \in Q _{1} \cap Q _{2}\right) \geq \P \left(\Gamma_{p_{1}, \ldots, p_{N}} \in Q _{1}\right) \P \left(\Gamma_{p_{1}, \ldots, p_{N}} \in Q _{2}\right)
+$$
+\end{rema}
+
+\begin{proof}
+By induction on $n .$ 
+
+Case $n=1$ (with $p=\P(b=1))$ :
+$$
+\begin{aligned}
+\E(f g)-\E(f) \E(g) &=p f(1) g(1)+(1-p) f(0) g(0)-(p f(1)+(1-p) f(0))(p g(1)+(1-p) g(0)) \\
+&=p(1-p)(f(1) g(1)+f(0) g(0)-f(1) g(0)-f(0) g(1)\\
+&=p(1-p)(f(1)-f(0))(g(1)-g(0))\\
+&\le 0 (\text{ by the monotonicity of both functions })
+\end{aligned}
+$$
+Now for the induction. Observe that for any assignment $\left(b_{2} \ldots b_{n}\right) \in\{0,1\}^{n-1}, f$ becomes a monotone function of the single bit $b_{1}$.  We then have
+\begin{align*}
+\E(f g) &=\E_{1 \ldots n}(f g) \\
+&=\E_{2 \ldots n}\left(\E_{1}\left(f g \mid b_{2} \ldots b_{n}\right)\right)\\
+&\geq \E_{2 \ldots n}\left(\E_{1}\left(f \mid b_{2} \ldots b_{n}\right) \cdot \E_{1}\left(g \mid b_{2} \ldots b_{n}\right)\right) \text{ for each $b_{k+1}^{n}$ applying case $n=1$ }
+\end{align*}
+
+where $\mathbb{E}_{k+1}$ denotes expectation over $b_{k+1}^{n}:=\left(b_{k+1}, \ldots, b_{n}\right)$. $\E_{1}\left(f \mid b_{2} \ldots b_{n}\right)$ is a function of $b_{2} \ldots b_{n}$. By monotonicity of $f$, it is an increasing function. Likewise for $\E_{1}\left(g \mid b_{2} \ldots b_{n}\right) .$ Since by induction we may assume the theorem for the case $n-1$, we have
+\begin{align*}
+\E(fg)& \geq \E_{2 \ldots n}\left(\E_{1}\left(f \mid b_{2} \ldots b_{n}\right)\right) \cdot \E_{2 \ldots n}\left(\E_{1}\left(g \mid b_{2} \ldots b_{n}\right)\right) \\
+&=\E_{1 \ldots n}(f) \cdot \E_{1 \ldots n}(g) \\
+&=\E(f) \E(g)
+\end{align*}
+\end{proof} 
+
+\begin{exma}
+In the random graph $G(2 k, 1 / 2)$, there is probability at least $2^{-2 k}$ that all degrees are $\leq k-1$. We call this event $A$. 
+\begin{proof}
+By applying \cref{corafkg}.
+\end{proof}
+\begin{rema}
+One can also ask for an upper bound on $\P(A) .$ Since $A$ is disjoint from the event that all degrees are at least $k$, which has by symmetry the same probability, so we can conclude that $\P(A) \leq 1 / 2$. 
+
+We next show actually $\P(A)$ tends toward
+$0$ with $k\to \infty$. 
+
+Fix a set $L$ of the vertices, of size $\ell$. For $v \in L$, if it has at most $k-1$ neighbors, then it has at most $k-1$ neighbors in $L^{c} .$ So we'll just upper bound the probability that every vertex in $L$ has at most
+
+$k-1$ neighbors in $L^{c} .$ These events (ranging over $v \in L$ ) are independent. So we can use the upper bound $\left(2^{-2 k+\ell}\left(\begin{array}{c}2 k-\ell \\ \leq k-1\end{array}\right)\right)^{\ell}$. 
+
+Fixing $\ell$ proportional to $\sqrt{k}$ we can get a bound of the form $\P(A) \leq \exp (-\Omega(\sqrt{k})) .$ 
+\end{rema}
+
+\end{exma}
+
+\begin{exma}
+ Let $H$ be a family of subsets of $[n]\coloneqq\{1,\ldots,n\}$ such that for all $A, B \in H, \varnothing \subset A \cap B$ and $A \cup B \subset[n]$ (strict containments). Then $|H| \leq 2^{n-2}$.
+
+\begin{proof}
+Let $F$ be the "upward order ideal" generated by $H: F=\{S: \exists T \in H, T \subseteq S\} .$ Let $G$ be the "downward order ideal" generated by $H: G=\{S: \exists T \in H, S \subseteq T\}$. Then $H \subseteq \bar{F} \cap G$. 
+
+$|F| \leq 2^{n-1}$ because $F$ satisfies the property that $\varnothing \subset A \cap B$ for all $A, B \in F$, and therefore $F$ cannot contain any set and its complement.
+
+Likewise, $|G| \leq 2^{n-1}$ because $G$ satisfies the property that $A \cup B \subset[n]$ for all $A, B \in G$, and therefore $G$ cannot contain any set and its complement.
+
+Interpreting this in terms of the bits being distributed uniformly iid, we have that $\P(F) \leq 1 / 2$ and $\P(G) \leq 1 / 2$. Since $F$ is an increasing event and $G$ a decreasing event, $\P(F \cap G) \leq 1 / 4$
+\end{proof} 
+\end{exma}
+
+\begin{cora}{\bfs{XYZ inequality}}
+Let $\Gamma$ be a finite  partially ordered set. A linear extension of $\Gamma$ is any total order on its elements that is consistent with $\Gamma$. For any three elements $x, y, z$ of $\Gamma$,
+$$
+\P((x \leq y) \text{ and } (x \leq z)) \geq \P(x \leq y) \cdot \P(x \leq z)
+$$
+where $\P$ is the uniform distribution of all possible linear extensions of $\Gamma$. In other words the probability that  $x\le z$ increases if one adds the condition that $x\le y$.
+\end{cora}
+\begin{rema}{\bfs{interpret of XYZ inequality}}
+Another point of view: Consider random variables $x_{1}, \cdots, x_{n}$, independently and uniformly distributed on the unit interval. Suppose we are given partial information, $\Gamma$, about the unknown ordering of the $x^{\prime} s ;$ e.g., $\Gamma=\left\{x_{1}<x_{12}, x_{7}<x_{5}, \cdots\right\} .$ 
+\begin{align*}
+\P\left(x_{1}<x_{2} \mid \Gamma\right) \leq \P\left(x_{1}<x_{2} \mid \Gamma, x_{1}<x_{3}\right)
+\end{align*}
+\end{rema}
+We won't show the argument here, but the FKG inequality was used in a very clever way by Shepp to prove the "XYZ inequality" conjectured by Rival and Sands.  Consider the uniform distribution on linear extensions of $\Gamma$.
+
+
+
+As an important application consider a family $S$ of non-empty subsets of $[n]$ and for each $A \in S$ let $I_{A}=\indicate{A \subseteq \Gamma_{p_{1}, \ldots, p_{N}}}.$ Note that every $I_{A}$ is increasing. Finally, let $X=\sum_{A \in S } I_{A}$, i.e. $X$ is the number of sets $A \in S$ that are contained in $\Gamma_{p_{1}, \ldots, p_{N}}$
+\begin{cora}{\bfs{Lower Bounds of Nonexistence}}\label{cora:non}
+For $X=\sum_{A \in S } I_{A}$ of the form just described,
+$$
+\P (X=0) \geq \exp \left\{-\frac{ \E X}{1-\max _{i} p_{i}}\right\}
+$$
+\end{cora}
+\begin{proof}
+By FKG inequality and induction we immediately obtain
+$$
+\P (X=0) \geq \prod_{A \in S }\left(1- \E I_{A}\right) .
+$$
+Now, using the inequalities $1-x \geq e^{-x /(1-x)}$ and $\E I_{A} \leq \max p_{i}$ we conclude that
+$$
+\P (X=0) \geq \exp \left\{-\frac{ \E X}{1-\max _{A} \E I_{A}}\right\} \geq \exp \left\{-\frac{ \E X}{1-\max _{i} p_{i}}\right\}
+$$
+\end{proof} 
+\begin{rema}
+We will soon give some similar exponential upper bounds on $\P (X=0)$ in \cref{thm:non}.
+\end{rema}
+
+\subsection{Janson Inequality: Upper Bounds for Correlated Lower Tails}
+
+We continue to study random variables of the form $X=\sum_{A \in S } I_{A}$ as in the preceding subsection. For the lower tail of the distribution of $X$, the following analogue of Theorem $2.1$ holds (Janson 1990b).
+
+\begin{thma}{\bfs{Janson Inequality: Lower Tail Bound}}\label{thmjanson}
+Let $X=\sum_{A \in S} I_{A}$ as above, and let $\lambda= \E X=\sum_{A} \E I_{A}$ and $\bar{\Delta}=\sum \sum_{A \cap B \neq \emptyset} \E \left(I_{A} I_{B}\right) .$ Then, with $\varphi(x)=(1+x) \log (1+x)-x$, for
+$0 \leq t \leq \E X$
+$$
+\P (X \leq \E X-t) \leq \exp \left(-\frac{\varphi(-t / \lambda) \lambda^{2}}{\bar{\Delta}}\right) \leq \exp \left(-\frac{t^{2}}{2 \bar{\Delta}}\right)
+$$
+\end{thma} 
+\begin{rema}
+ $\varphi(\cdot)$ comes from  \cite[p.22 Corollary 2.2.]{janson2011random}. See also Section 4.1 in ``Tail and Concentration Bounds with Applications'' note.
+\end{rema}
+\begin{rema}{\bfs{alternative form of $\bar{\Delta}$}}
+Note that the definition of $\bar{\Delta}$ includes the diagonal terms with $A=B .$ It is often convenient to treat them separately, and we define
+\begin{align}
+    \Delta=\frac{1}{2}  \sum_{A \neq B, A \cap B \neq \emptyset} \E \left(I_{A} I_{B}\right)\label{eq:delta}
+\end{align}
+(The factor $\frac{1}{2}$ reflects the fact that $\Delta$ is the sum of $\E \left(I_{A} I_{B}\right)$ over all unordered pairs $\{A, B\} \in[ S ]^{2}$ with $A \cap B \neq \emptyset$.) Thus $\bar{\Delta}=\lambda+2 \Delta$.
+\end{rema} 
+
+\begin{rema}{\bfs{Janson Inequality vs. Chernoff Inequality}} 
+$$\text{Janson Inequality: correlated summand; Chernoff Inequality: independent summand}$$
+Clearly, $\Delta \geq 0$ and thus $\bar{\Delta} \geq \lambda$, with equality if and only if the sets $A$ are disjoint and thus the random indicators $I_{A}$ are independent. In the independent case, the bounds in \cref{thmjanson} are the same inequalities for bounded independent summands. If $\sum I_A=\sum I_{\{p_i\}}$), it is the same as Section 4.1 in ``Tail and Concentration Bounds with Applications'' note. 
+
+\cref{thmjanson} is thus an extension of (the lower tail part of) independent summands. More importantly, in a \tb{weakly dependent} case with, say, $\Delta=o(\lambda)$ and thus $\bar{\Delta} \sim \lambda$, we get almost the same bounds as in the independent case.
+\end{rema} 
+
+\begin{rema}{\bfs{no general exponential bound for the upper tail}}
+ There can be no corresponding general exponential bound for the upper tail probabilities $\P (X \geq \E X+t)$, as is seen by the following counterexample:
+ 
+ Let $\lambda$ be an integer, let $\Gamma=\left\{0, \ldots, 2 \lambda^{2}\right\}$ with $p_{0}=\lambda^{-4}, p_{i}=1-\lambda^{-4}$ for $1 \leq i \leq \lambda^{2}$ and
+$p_{i}=\lambda^{-1}-\lambda^{-4}+\lambda^{-8}$ for $\lambda^{2}+1 \leq i \leq 2 \lambda^{2}$, and consider the family $S$ of the
+subsets $A_{i}=\{0, i\}$ for $1 \leq i \leq \lambda^{2}$ and $A_{i}=\{i\}$ for $\lambda^{2}+1 \leq i \leq 2 \lambda^{2}$. Then
+$\E X=\lambda$ and $\Delta<1$. Nevertheless, for any $c<\infty$ and $\varepsilon>0$, if $\lambda$ is large enough,
+$$
+\P (X>c \lambda) \geq \lambda^{-4}\left(1-\lambda^{-4}\right)^{\lambda^{2}} \geq \frac{1}{2} \lambda^{-4}>\exp (-\varepsilon \lambda)
+$$
+Some partial results for the upper tail are given in Section $2.6$.
+\end{rema}
+
+
+\begin{proof}
+Let $\Psi(s)= \E\left(e^{-s X}\right), s \geq 0$. We will show first that
+\begin{align}
+    -(\log \Psi(s))^{\prime} \geq \lambda e^{-s \bar{\Delta} / \lambda}, \quad s>0\label{eq:ddta}
+\end{align}
+which implies
+\begin{align}
+    -\log \Psi(s) \geq \int_{0}^{s} \lambda e^{-u \bar{\Delta} / \lambda} d u=\frac{\lambda^{2}}{\bar{\Delta}}\left(1-e^{-s \bar{\Delta} / \lambda}\right)\label{eq:ddtb}
+\end{align}
+In order to do this, we represent $-\Psi^{\prime}(s)$ in the form
+\begin{align}
+    -\Psi^{\prime}(s)= \E\left(X e^{-s X}\right)=\sum_{A} \E\left(I_{A} e^{-s X}\right)\label{eq:ddt}
+\end{align}
+For every $A \in S$ we split $X=Y_{A}+Z_{A}$, where $Y_{A}=\sum_{B \cap A \neq \emptyset} I_{B} .$ Then, by the FKG inequality (applied to $\Gamma_{p_{1}, \ldots, p_{N}}$ conditioned of $I_{A}=1$, which is a random subset of the same type) and by the independence of $Z_{A}$ and $I_{A}$ we get (setting $p_{A}= \E\left(I_{A}\right)$)
+\begin{align}
+\E\left(I_{A} e^{-\theta X}\right) &=p_{A} \E\left(e^{-s Y_{A}} e^{-s Z_{A}} \mid I_{A}=1\right) \geq p_{A} \E\left(e^{-s Y_{A}} \mid I_{A}=1\right) \E\left(e^{-s Z_{A}}\right) \nn
+& \geq p_{A} \E\left(e^{-s Y_{A}} \mid I_{A}=1\right) \Psi(s) \label{eq:ddtt}
+\end{align}
+Recall that $\lambda=\sum_{A} p_{A}$. From \cref{eq:ddt,eq:ddtt}, by applying Jensen's inequality twice, first to the conditional expectation and then to the sum, we obtain
+$$
+\begin{aligned}
+-(\log \Psi(s))^{\prime} &=\frac{-\Psi^{\prime}(s)}{\Psi(s)} \geq \sum_{A} p_{A} \E\left(e^{-s Y_{A}} \mid I_{A}=1\right) \\
+& \geq \lambda \sum_{A} \frac{1}{\lambda} p_{A} \exp \left\{- \E\left(s Y_{A} \mid I_{A}=1\right)\right\} \\
+& \geq \lambda \exp \left\{-\sum_{A} \frac{1}{\lambda} p_{A} \E\left(s Y_{A} \mid I_{A}=1\right)\right\} \\
+&=\lambda \exp \left\{-\frac{s}{\lambda} \sum_{A} \E \left(Y_{A} I_{A}\right)\right\}=\lambda e^{-s \bar{\Delta} / \lambda}
+\end{aligned}
+$$
+We thus get that \cref{eq:ddta} is correct. 
+
+We next apply Chernoff inequality with \cref{eq:ddtb}.
+\begin{align*}
+\log \P (X \leq \lambda-t) \leq \log \E \left(e^{-s X}\right)+s(\lambda-t) \leq-\frac{\lambda^{2}}{\bar{\Delta}}\left(1-e^{-s \bar{\Delta} / \lambda}\right)+s(\lambda-t)
+\end{align*}
+\end{proof} 
+
+
+
+The right-hand side is minimized by choosing $s=-\log (1-t / \lambda) \lambda / \bar{\Delta}$, which yields the first bound (for $t=\lambda$, let $s \rightarrow \infty) ;$ the second follows because $\varphi(x) \geq x^{2} / 2$ for $x \leq 0$ (See \cite[p.22 Corollary 2.2.]{janson2011random} and Section 4.1 in ``Tail and Concentration Bounds with Applications'' note).
+
+\subsection{The Probability of Nonexistence}
+
+Taking $t= \E X$ in \cref{thmjanson}, we obtain an estimate for the probability of no set in $S$ occuring, which we state separately as part of the following theorem. 
+\begin{thma}{\bfs{Janson Inequality: Nonexistence}}\label{thm:non}
+With $X=\sum_{A \in S } I_{A}, \lambda= \E X$ and $\Delta$ as above in \cref{eq:delta},
+\begin{enumerate}[(i)]
+    \item $\P (X=0) \leq \exp (-\lambda+\Delta)$
+    \item $\P (X=0) \leq \exp \left(-\frac{\lambda^{2}}{\lambda+2 \Delta}\right)=\exp \left(-\frac{\lambda^{2}}{\sum \sum_{A \cap B \neq \emptyset} \E \left(I_{A} I_{B}\right)}\right)$
+\end{enumerate}
+\end{thma} 
+\begin{rema}
+ Both parts are valid for any $\lambda$ and $\Delta$, but (i) is uninteresting unless $\Delta<\lambda$. In fact, (i) gives the better bound when $\Delta<\lambda / 2$, while (ii) is better for larger $\Delta$.
+\end{rema}
+
+\begin{proof}
+By letting $s \rightarrow \infty$ in \cref{eq:ddtb} and observing that $\lim _{s \rightarrow \infty} \Psi(s)= P (X=0)$, we immediately obtain (ii). (If we directly take $t=\lambda$ in \cref{thmjanson}, we can get a similar bound with a factor $1/2$.)
+
+For (i), we obtain from the proof of  \cref{thmjanson}, with $Y_{A}^{\prime}=Y_{A}-I_{A}$
+\begin{align*}
+\begin{aligned}
+-\log \P (X=0) &=-\int_{0}^{\infty}(\log \Psi(s))^{\prime} d s \geq \int_{0}^{\infty} \sum_{A} p_{A} \E \left(e^{-s Y_{A}} \mid I_{A}=1\right) d s \\
+&=\sum_{A} p_{A} \E \left(\frac{1}{Y_{A}} \mid I_{A}=1\right)
+\end{aligned}
+\end{align*}
+When $I_{A}=1$, we find $1 / Y_{A}=1 /\left(1+Y_{A}^{\prime}\right) \geq 1-\frac{1}{2} Y_{A}^{\prime}$ (since $Y_{A}^{\prime}$ is an integer), and thus
+\begin{align*}
+\begin{aligned}
+-\log \P (X=0) & \geq \sum_{A} p_{A} \E \left(1-\frac{1}{2} Y_{A}^{\prime} \mid I_{A}=1\right) \\
+&=\sum_{A}\left(p_{A}-\frac{1}{2} \E \left(I_{A} Y_{A}^{\prime}\right)\right)=\lambda-\Delta .
+\end{aligned}
+\end{align*}
+\end{proof}
+\begin{rema}
+ The quantity $\Delta$ is a measure of the pairwise dependence between the $I_{A}$ 's. If $\Delta=o(\lambda)$, then the exponents in \cref{thm:non} are $- \E X(1+o(1))$, matching asymptotically the lower bound \cref{cora:non} provided further $\max p_{i} \rightarrow 0$
+The development of the exponential bounds in this section were stimulated by the application in which $X$ counts copies of a given graph in the random graph $G (n, p)$.
+\end{rema}
+
+
+
+\bibliographystyle{IEEEtran}
+\bibliography{IEEEabrv,StringDefinitions,adv_dnn}
+\end{document}
