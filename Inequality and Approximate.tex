@@ -1,36 +1,7 @@
-% \documentclass[a4paper,10pt]{article} % or whatever
-% \documentclass[letterpaper,10pt]{article} % or whatever
 \documentclass{article}
-
-% if you need to pass options to natbib, use, e.g.:
      \PassOptionsToPackage{numbers, compress}{natbib}
-% before loading neurips_2020
 
-% ready for submission
-% \usepackage{neurips_2021}
-
-% to compile a preprint version, e.g., for submission to arXiv, add add the
-% [preprint] option:
-% \usepackage[final]{neurips_2021}
-
-% to compile a camera-ready version, add the [final] option, e.g.:
-
-% \usepackage[final]{neurips_2020}
-\usepackage[preprint]{neurips_2021}
-% \usepackage[preprint]{neurips_2021}
-
-
-% to compile a camera-ready version, add the [final] option, e.g.:
-
-
-% \newtheorem*{notice}{Notice}
-
-% \theoremstyle{definition}
-% \newtheorem{dfn}[equation]{Definition}
-% \newtheorem{bigrem}[equation]{Remark}
-% \newtheorem{num}[equation]{} % a bit strange, but I do use it!
-% \newtheorem{exmp}[equation]{Example}
-
+\usepackage[preprint]{notes}
 
 \newcommand{\ignore}[1]{}
 % to avoid loading the natbib package, add option nonatbib:
@@ -53,32 +24,13 @@
 %\tikzstyle{process} = [rectangle, minimum width=3cm, minimum height=1cm, text centered, draw=black]
 %\tikzstyle{output} = [rectangle, rounded corners, minimum width=1cm, minimum height=1cm,text centered, draw=black]
 \title{Inequality and Approximate}
-% \author{%
-%   Qiyu~Kang, and Wee~Peng~Tay
-%  \thanks{First two authors contributed equally to this work.} 
-%   \\
-%   School of Electrical and Electronic Engineering\\
-%   Nanyang Technological University\\
-%   Singapore \\
-% %   \texttt{songy@ntu.edu.sg, kang0080@e.ntu.edu.sg, wptay@ntu.edu.sg, qding001@e.ntu.edu.sg} \\
-%   % examples of more authors
-%   % \And
-%   % Coauthor \\
-%   % Affiliation \\
-%   % Address \\
-%   % \texttt{email} \\
-% }
-
 
 
 \begin{document}
 
 \maketitle
 
-% \begin{abstract}
 
-% Deep neural networks (DNNs) are well-known to be vulnerable to adversarial attacks, where malicious human-imperceptible perturbations are included in the input to the deep network to fool it into making a wrong classification. Recent studies have demonstrated that neural Ordinary Differential Equations (ODEs) are intrinsically more robust against adversarial attacks compared to vanilla DNNs. In this work, we propose a stable neural ODE with Lyapunov-stable equilibrium points for defending against adversarial attacks (SODEF). By ensuring that the equilibrium points of the ODE solution used as part of SODEF is Lyapunov-stable, the ODE solution for an input with a small perturbation converges to the same solution as the unperturbed input. We provide theoretical results that give insights into the stability of SODEF as well as the choice of regularizers to ensure its stability. Our analysis suggests that our proposed regularizers force the extracted feature points to be within a neighborhood of the Lyapunov-stable equilibrium points of the ODE. SODEF is compatible with many defense methods and can be applied to any neural network's final regressor layer to enhance its stability against adversarial attacks. 
-% \end{abstract}
 \section{Bernoulli's inequality}
 \begin{enumerate}
     \item For every \textbf{integer} $r\ge 0$ and every real number $x\ge -1$. \begin{align}
